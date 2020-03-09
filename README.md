@@ -1,11 +1,15 @@
-## My Project
+## Amazon Fraud Detector Sample Notebooks 
 
-TODO: Fill this README out!
 
-Be sure to:
+Amazon Fraud Detector is a fully managed service that makes it easy to identify potentially fraudulent online activities such as online payment fraud and the creation of fake accounts. This repository contains a collection of sample Jupyter
+notebooks that interact with the Amazon Fraud Detector APIs.  
 
-* Change the title in this README
-* Edit your repository description on GitHub
+-	Fraud Detector End to End - contains a notebook that is an end to end example of Fraud Detector’s APIs
+- Fraud Detector Predict API – contains a notebook that provides an example of calling a Fraud Detector’s predict API.
+- Fraud Detector Data Profiler – contains a python package and notebook to profile data. It can be used to identify data quality and other issues when preparing data for Fraud Detector.
+
+
+
 
 ## License
 

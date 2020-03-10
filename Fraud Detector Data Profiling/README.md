@@ -12,5 +12,14 @@ Instructions:
 Samples:
 [Fraud Detector Data Profiling-Sample_Results.ipynb](Fraud_Detector_Data_Profiling-Sample_Results.ipynb) - contains a sample result of running the data profiling notebook on the sample dataset **synthitic_newaccount_data_50k.csv** and the [report.html](report.html) contains a sample data profiling report. 
 
+Each task is contained in its own directory, with the following structure:
+
+```
+[Jupyter Directory] /
+    afd_profile.py
+    Fraud_Detector_Data_Profiling.ipynb
+    templates/
+```
+
 ## License
 This library is licensed under the MIT-0 License. See the LICENSE file.

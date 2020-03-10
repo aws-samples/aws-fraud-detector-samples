@@ -10,7 +10,7 @@ Instructions:
 4. run your notebook, review the report.html that is produced. 
 
 Samples:
-[Fraud Detector Data Profiling-Sample_Results.ipynb](Fraud_Detector_Data_Profiling-Sample_Results.ipynb) - contains a sample result of running the data profiling notebook on the sample dataset **synthitic_newaccount_data_50k.csv** and the [report.html](https://htmlpreview.github.io/? report.html) contains a sample data profiling report. 
+[Fraud Detector Data Profiling-Sample_Results.ipynb](Fraud_Detector_Data_Profiling-Sample_Results.ipynb) - contains a sample result of running the data profiling notebook on the sample dataset **synthitic_newaccount_data_50k.csv** and the [report.html](https://htmlpreview.github.io/?https://github.com/aws-samples/aws-fraud-detector-samples/blob/master/Fraud%20Detector%20Data%20Profiling/report.html) contains a sample data profiling report. 
 
 Each task is contained in its own directory, with the following structure:
 

@@ -10,7 +10,7 @@ Instructions:
 4. run your notebook, review the report.html that is produced. 
 
 Samples:
-[Fraud Detector Data Profiling-Sample_Results.ipynb](Fraud_Detector_Data_Profiling-Sample_Results.ipynb) - contains a sample result of running the data profiling notebook on the sample dataset **synthitic_newaccount_data_50k.csv** and the [results.html](results.html) contains a sample data profiling report. 
+[Fraud Detector Data Profiling-Sample_Results.ipynb](Fraud_Detector_Data_Profiling-Sample_Results.ipynb) - contains a sample result of running the data profiling notebook on the sample dataset **synthitic_newaccount_data_50k.csv** and the [report.html](report.html) contains a sample data profiling report. 
 
 ## License
 This library is licensed under the MIT-0 License. See the LICENSE file.

@@ -1,7 +1,7 @@
 
-## Fraud Detector Data Profiling
+## About this notebook
 
-This sample notebook and python code provides a simple data profile that can help get an understanding of your data as well as identify data quality and other issues prior to training a model with Fraud Detector. 
+This notebook provides an example of how to configure and run the data profiling notebook. Fraud_Detector_Data Profling.ipynb is the notebook that performs the profiling. afd_profile.py is the python package which will generate your profile report.  /templates is the directory that contains the supporting profile templates. Make sure your directory contains the notebook, afd_profile.py, and the templates directory.
 
 Instructions:
 1. download the [afd_profile.py](afd_profile.py)  to your jupyter notebook, and the templates directory to your notebook. afd_profile.py contains functions to perform the profiling and the /templates directory contains .html templates to present the profile report. 

@@ -119,9 +119,9 @@ def set_feature(row, config):
         feature = "exclude"
         message = "(" + "{:.2f}".format(row.nunique_pct*100) + "%) unique"
     
-    if row._column == required_features['EMAIL_ADDRESS']:
+    if ('EMAIL_ADDRESS' in required_features) and (row._column == required_features['EMAIL_ADDRESS']):
         feature = "EMAIL_ADDRESS"
-    if row._column == required_features['IP_ADDRESS']:
+    if ('IP_ADDRESS' in required_features) and (row._column == required_features['IP_ADDRESS']):
         feature = "IP_ADDRESS"
     if row._column == required_features['EVENT_TIMESTAMP']:
         feature = "EVENT_TIMESTAMP"
@@ -154,7 +154,7 @@ def get_label(config, df):
     label checks
     """
     if label_dict['fraud_count'] <= 500:
-        message['fraud_count'] = "Fraud count " + label_dict['fraud_count'] + " is less than 500\n"
+        message['fraud_count'] = "Fraud count " + str(label_dict['fraud_count']) + " is less than 500\n"
     
     if df[label].isnull().sum(axis = 0)/rowcnt >= 0.01:
         message['label_nulls'] =   "Your LABEL column contains  " + label_dict["null_count"] +" a significant number of null values"
@@ -462,13 +462,20 @@ def profile_report(config):
     profile= env.get_template('profile.html')
     
     # -- all the checks -- 
+    required_features = config['required_features']
     df = get_dataframe(config)
     df, overview_stats = get_overview(config, df)
     df_stats, warnings = get_stats(config, df)
     lbl_stats, lbl_warnings = get_label(config, df)
     p_stats, p_warnings = get_partition(config, df)
-    e_stats, e_warnings = get_email(config, df)
-    i_stats, i_warnings = get_ip_address(config, df)
+    if 'EMAIL_ADDRESS' in required_features:		
+        e_stats, e_warnings = get_email(config, df)
+    else:
+        e_stats, e_warnings = None, None
+    if 'IP_ADDRESS' in required_features:		
+        i_stats, i_warnings = get_ip_address(config, df)
+    else:
+        i_stats, i_warnings = None, None
     cat_rec = get_categorical(config, df_stats, df)
     num_rec = get_numerics( config, df_stats, df)
     

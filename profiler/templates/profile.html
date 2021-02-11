@@ -24,8 +24,12 @@
     {% include "profile_messages.html" %}
     {% include "profile_label.html" %}
     {% include "profile_partition.html" %}
+    {% if e_stats %}
     {% include "profile_email.html" %}
+    {% endif %}
+    {% if i_stats %}
     {% include "profile_ip.html" %}
+    {% endif %}
     {% include "profile_categorical.html" %}
     {% include "profile_numeric.html" %}
 

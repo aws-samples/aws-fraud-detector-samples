@@ -155,9 +155,9 @@
 <div class="alert alert-warning" role="alert">
     <table class="table table-striped">
     <tbody>
-    {% for key in e_stats.email_warnings() %}
+    {% for key in e_warnings.keys() %}
                     <tr>
-                      <td>{{ e_stats.email_warnings[key] }}</td>
+                      <td>{{ e_warnings[key] }}</td>
                     </tr>
     {% endfor %}
     </tbody>

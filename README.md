@@ -7,6 +7,8 @@ Amazon Fraud Detector is a fully managed service that makes it easy to identify 
   
 - Fraud_Detector_GetEventPrediction_API_example.ipynb, provides an example of calling a Fraud Detector’s event prediction API.  
 
+- Fraud_Detector_BatchPrediction_API_Example.ipynb, provides an example of working with Fraud Detector's batch prediction API.
+
 
 
 ## License

@@ -20,6 +20,9 @@ Outputs:
         - '.console.aws.amazon.com/glue/home?region='
         - !Ref "AWS::Region"
         - '#etl:tab=jobs'
+  InputS3Location:
+    Description: S3 path of the input CSV. The cleaned data set and report.html are saved to the same S3 bucket.
+    Value: !Ref CSVFilePath
 Resources:
   S3CustomResource:
     Type: Custom::S3CustomResource
@@ -213,7 +216,7 @@ Resources:
         '--FileDelimiter': !Ref FileDelimiter
         '--CleanCSV': !Ref CleanCSV
         '--ProfileCSV': !Ref ProfileCSV
-        '--additional-python-modules': 'botocore>=1.20.12,boto3>=1.17.12,pyarrow==2,awswrangler,Jinja2'
+        '--additional-python-modules': 'botocore>=1.20.12,boto3>=1.17.12,pyarrow==2,awswrangler==2.9.0,Jinja2'
       Description: Glue job to clean csv and profile data
   
       
@@ -253,7 +256,7 @@ Parameters:
     Default: 'EVENT_LABEL'
   CleanCSV:
     Type: String
-    Description: Do you want to clean your CSV?
+    Description: Do you want to clean your CSV? This will create and save a new copy of data. 
     Default: 'Yes'
     AllowedValues:
       - 'Yes'

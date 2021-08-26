@@ -12,6 +12,154 @@ import sys
 import csv
 from jinja2 import Environment, PackageLoader, FileSystemLoader
 
+import itertools
+from pandas import DataFrame, Series
+
+
+DATE_FORMATS = [
+    '%m/%d/%Y',
+    '%m/%d/%Y',
+    '%Y/%m/%d',
+    '%m-%d-%Y',
+    '%m-%d-%Y',
+    '%Y-%m-%d',
+]
+
+TIME_FORMATS = [
+    '%I:%M:%S.%f %p',
+    '%I:%M:%S %p',
+    '%I:%M %p',
+    '%H:%M:%S.%f',
+    '%H:%M:%S',
+    '%H:%M',
+]
+
+SPECIAL_FORMATS = [
+    "%Y-%m-%dT%H:%M:%S.%f"
+]
+
+SUPPORTED_FORMATS = []
+SUPPORTED_FORMATS += DATE_FORMATS
+SUPPORTED_FORMATS += [f'{d} {t}' for d, t in itertools.product(DATE_FORMATS, TIME_FORMATS)]
+SUPPORTED_FORMATS += SPECIAL_FORMATS
+
+# make it consistent with validation container
+email_regex = """(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])"""
+ip_regex = "((^\\s*((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))\\s*$)|(^\\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:)))(%.+)?\\s*$))"
+
+
+def get_type_family_raw(dtype) -> str:
+    """From dtype, gets the dtype family."""
+    try:
+        if dtype.name == 'category':
+            return 'category'
+        if 'datetime' in dtype.name:
+            return 'datetime'
+        elif np.issubdtype(dtype, np.integer):
+            return 'int'
+        elif np.issubdtype(dtype, np.floating):
+            return 'float'
+    except Exception as err:
+        print(f'Warning: dtype {dtype} is not recognized as a valid dtype by numpy! AFD may incorrectly handle this feature...')
+
+    if dtype.name in ['bool', 'bool_']:
+        return 'bool'
+    elif dtype.name in ['str', 'string', 'object']:
+        return 'object'
+    else:
+        return dtype.name
+
+# Raw dtypes (Real dtypes family)
+def get_type_map_raw(df: DataFrame) -> dict:
+    features_types = df.dtypes.to_dict()
+    return {k: get_type_family_raw(v) for k, v in features_types.items()}
+
+
+def get_type_map_special(X: DataFrame) -> dict:
+    type_map_special = {}
+    for column in X:
+        type_special = get_type_special(X[column])
+        if type_special is not None:
+            type_map_special[column] = type_special
+    return type_map_special
+
+
+def get_type_special(X: Series) -> str:
+    if check_if_datetime_as_object_feature(X):
+        type_special = 'datetime'
+    elif check_if_nlp_feature(X):
+        type_special = 'text'
+    elif check_if_regex_feature(X, email_regex):
+        type_special = 'EMAIL_ADDRESS'
+    elif check_if_regex_feature(X, ip_regex):
+        type_special = 'IP_ADDRESS'
+    else:    
+        type_special = None
+    return type_special
+
+
+def check_if_datetime_as_object_feature(X: Series) -> bool:
+    type_family = get_type_family_raw(X.dtype)
+
+    if X.isnull().all():    
+        return False
+    if type_family != 'object':  # TODO: seconds from epoch support
+        return False
+    try:
+        pd.to_numeric(X)
+    except:
+        try:
+            if len(X) > 500:
+                # Sample to speed-up type inference
+                X = X.sample(n=500, random_state=0)
+            
+            result = pd.DataFrame(columns=['format', 'mismatch_rate'])
+            for fm in SUPPORTED_FORMATS:
+                result = result.append({'format':fm, 
+                                        'mismatch_rate':pd.to_datetime(X, format = fm, errors='coerce').isnull().mean()},
+                                        ignore_index=True)        
+            if result['mismatch_rate'].min() > 0.8:  # If over 80% of the rows are NaN
+                return False
+            return True
+        except:
+            return False
+
+
+def check_if_nlp_feature(X: Series) -> bool:
+    type_family = get_type_family_raw(X.dtype)
+    if type_family != 'object':
+        return False
+    if len(X) > 5000:
+        # Sample to speed-up type inference
+        X = X.sample(n=5000, random_state=0)
+    X_unique = X.unique()
+    num_unique = len(X_unique)
+    num_rows = len(X)
+    unique_ratio = num_unique / num_rows
+    if unique_ratio <= 0.01:
+        return False
+    try:
+        avg_words = Series(X_unique).str.split().str.len().mean()
+    except AttributeError:
+        return False
+    if avg_words < 3:
+        return False
+
+
+# check if the column is email/ip by regex
+def check_if_regex_feature(X:Series, regex:str) -> bool:
+    dtype = get_type_family_raw(X.dtype)
+    if dtype not in ['category', 'object']:
+        return False
+    
+    X = X.dropna()
+    if len(X) > 100:
+        # Sample to speed-up type inference
+        X = X.sample(n=100, random_state=0)
+    match = X.str.match(regex).all()    
+    return match   
+
+
 def save_file_from_url(url,local_name):
     # Load HTML templates from Github
     http_glue = urllib3.PoolManager()
@@ -74,68 +222,49 @@ def get_overview(config, df):
     return df, overview_stats
 
 def set_feature(row, config):
-    """ sets the feature type of each variable in the file, identifies features with issues 
-        as well as the required features. this is the first pass of rules 
-    """
-    rulehit = 0
-    feature = ""
-    message = ""
-    required_features = config['required_features']
-    
-    # -- assign numeric -- 
-    if ((row._dtype in ['float64', 'int64']) and (row['nunique'] > 1)):
-        feature = "numeric"
-        message = "(" + "{:,}".format(row['nunique']) + ") unique"
-        
-    # -- assign categorical -- 
-    if ((row._dtype == 'object') and ( row.nunique_pct <= 0.75)):
-        feature = "categorical"
-        message = "(" + "{:.2f}".format(row.nunique_pct*100) + "%) unique"
-        
-    # -- assign categorical to numerics  -- 
-    if ((row._dtype in ['float64', 'int64']) and ( row['nunique'] <= 1024 )):
-        feature = "categorical"
-        message = "(" + "{:,}".format(row['nunique']) + ") unique"
-    
-     # -- assign binary -- 
-    if (row['nunique'] == 2 ):
-        feature = "categorical"
-        message = "(" + "{:}".format(row['nunique']) + ") binary"
-    
-    # -- single value --
-    if (row['nunique'] == 1):
-        rulehit = 1
-        feature = "exclude"
-        message = "(" + "{:}".format(row['nunique']) + ") single value"
-    
-    # -- null pct --   
-    if (row.null_pct >= 0.50 and (rulehit == 0)):
-        rulehit = 1
-        feature = "exclude"
-        message =  "(" + "{:.2f}".format(row.null_pct*100) + "%) missing "
 
-    # -- categorical w. high % unique 
-    if ((row._dtype == 'object') and ( row.nunique_pct >= 0.75)) and (rulehit == 0):
-        rulehit = 1
-        feature = "exclude"
-        message = "(" + "{:.2f}".format(row.nunique_pct*100) + "%) unique"
+    feature = ""
+    message_uniq, message_null, action = "", "", ""
+    required_features = config['required_features']
+
+    # date type to variable type map
+    dtype_to_vtype_map = {
+        'category': 'CATEGORY',
+        'object': 'CATEGORY',
+        'int': 'NUMERIC',
+        'float': 'NUMERIC',
+        'text': 'TEXT',
+        'datetime': 'DATETIME',
+        'EMAIL_ADDRESS': 'EMAIL_ADDRESS',
+        'IP_ADDRESS': 'IP_ADDRESS',
+        'PHONE_NUMBER': 'PHONE_NUMBER'
+    }
     
-     # -- numeric w. extreeme % unique 
-    if ((row._dtype in ['float64', 'int64']) and ( row.nunique_pct >= 0.99)) and (rulehit == 0):
-        rulehit = 1
-        feature = "exclude"
-        message = "(" + "{:.2f}".format(row.nunique_pct*100) + "%) unique"
-    
-    if ('EMAIL_ADDRESS' in required_features) and (row._column == required_features['EMAIL_ADDRESS']):
-        feature = "EMAIL_ADDRESS"
-    if ('IP_ADDRESS' in required_features) and (row._column == required_features['IP_ADDRESS']):
-        feature = "IP_ADDRESS"
+    feature = dtype_to_vtype_map[row._dtype]
+
     if row._column == required_features['EVENT_TIMESTAMP']:
         feature = "EVENT_TIMESTAMP"
     if row._column == required_features['ORIGINAL_LABEL']:
         feature = "EVENT_LABEL"
-        
+    
+    # -- variable warnings -- 
+    if feature == 'CATEGORY' and row['nunique'] < 2:
+        message_uniq, action = "GT 1 UNIQUE VALUE", "EXCLUDE"
+    elif feature in ['EMAIL_ADDRESS', 'IP_ADDRESS'] and row['nunique'] < 100:
+        message_uniq, action = "GT <100 UNIQUE VALUE", "EXCLUDE"
+
+    if row.null_pct > 0.9 and feature not in ['EMAIL_ADDRESS', 'IP_ADDRESS']:
+        message_null, action = "GT >90% MISSING", "EXCLUDE"
+    elif row.null_pct > 0.75 and feature in ['EMAIL_ADDRESS', 'IP_ADDRESS']:
+        message_null, action = "GT >75% MISSING", "EXCLUDE"
+    elif row.null_pct > 0.2:
+        message_null = "GT >20% MISSING"
+
+    message = '; '.join([message_uniq, message_null, action]).lstrip(';')
+    message = None if len(message) < 4 else message
+
     return feature, message
+  
 
 def get_label(config, df):
     """ returns stats on the label and performs intial label checks  """
@@ -220,12 +349,17 @@ def get_stats(config, df):
     df_s1["not_null"] = rowcnt - df_s1["null"]
     df_s1["null_pct"] = df_s1["null"] / rowcnt
     df_s1["nunique_pct"] = df_s1['nunique'] / rowcnt
-    dt = pd.DataFrame(df.dtypes).reset_index().rename(columns={"index":"_column", 0:"_dtype"})
+
+    type_map_raw = get_type_map_raw(df)
+    type_map_special = get_type_map_special(df)
+    type_map_raw.update(type_map_special)
+    dt = pd.DataFrame.from_dict(type_map_raw, orient='index').reset_index().rename(columns={"index":"_column", 0:"_dtype"})
+    
     df_stats = pd.merge(dt, df_s1, on='_column', how='inner')
     df_stats = df_stats.round(4)
     df_stats[['_feature', '_message']] = df_stats.apply(lambda x: set_feature(x,config), axis = 1, result_type="expand")
     
-    return df_stats, df_stats.loc[df_stats["_feature"]=="exclude"]
+    return df_stats, df_stats.dropna(subset=['_message'])
 
 def get_email(config, df):
     """ gets the email statisitcs and performs email checks """
@@ -375,7 +509,7 @@ def col_stats(df, target, column):
 def get_categorical(config, df_stats, df):
     """ gets categorical feature stats: count, nunique, nulls  """
     required_features = config['required_features']
-    features = df_stats.loc[df_stats['_feature']=='categorical']._column.tolist()
+    features = df_stats.loc[df_stats['_feature'].isin(['CATEGORY','IP_ADDRESS','EMAIL_ADDRESS','TEXT','PHONE_NUMBER'])]._column.tolist()
     target = required_features['EVENT_LABEL']
     df = df[features + [target]].copy()
     rowcnt = len(df)
@@ -438,7 +572,7 @@ def ncol_stats(df, target, column):
 def get_numerics( config, df_stats, df):
     """ gets numeric feature descriptive statsitics and graph detalis """
     required_features = config['required_features']
-    features = df_stats.loc[df_stats['_feature']=='numeric']._column.tolist()
+    features = df_stats.loc[df_stats['_feature']=='NUMERIC']._column.tolist()
     target = required_features['EVENT_LABEL']
 
     df = df[features + [target]].copy()

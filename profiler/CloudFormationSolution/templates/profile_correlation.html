@@ -1,0 +1,111 @@
+{% block content %}
+<hr>
+    <h4>Correlation of Numeric Features with Labels</h4>
+    <div class="alert alert-info">
+    If the correlation is greather than 0.9, then this is potentially label leakage on that feature. Consider excluding that feature in model training. 
+    </div>
+<div class="container"> 
+    <canvas id="corrChart" width="800" height="300"></canvas>
+
+    <script>
+
+                var ctx = document.getElementById('corrChart');
+                var label_values = {{ num_corr['features']}};
+
+                var myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: label_values,
+                        datasets: []
+                    },
+                    options: {
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Correlation with labels',
+                            },
+                            legend: {
+                                labels: {
+                                  usePointStyle: false,
+                                },
+                              },
+                            zoom: {
+                                pan: {
+                                      enabled: true,
+                                      mode: 'x',
+                                    },
+                                zoom: {
+                                  wheel: {
+                                    enabled: true
+                                  },
+                                  mode: 'x',
+                                },
+                              }
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    font: {
+                                        size: 16,
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'abs(Pearson correlation coefficient)',
+                                    font: {
+                                        size: 16,
+                                    }
+                                  },
+                            },
+                            x: { 
+                                max:5,
+                                ticks: {
+                                    font: {
+                                        size: 16,
+                                    },
+                                    callback: function(val, index) {
+                                      return this.getLabelForValue(val).toString().slice(0, 20);
+                                    },
+                                },
+                                grid: {
+                                      drawBorder: false,
+                                      color: '#ff0000',
+                                },
+                            }
+                        }
+                    }
+                });
+
+                var model = {{num_corr['corr']}};
+                var colors = {{label_colors}};
+                var hover_colors = {{hover_colors}};
+                for(label_value in colors) {
+                    if(label_value != 'Missing Labels') {
+                        var newDataset = {
+                            label: 'Correlation with label='.concat('',label_value),
+                            data: [],
+                            backgroundColor: colors[label_value],
+                            hoverBorderColor: '#ff0000',
+                            hoverBorderWidth: 2,
+                            hoverBackgroundColor: hover_colors[label_value],
+                            yAxisID: 'y',
+                            pointStyle: 'rect'
+                        };
+                        for(value in model[label_value]) {
+                            newDataset.data.push(model[label_value][value]);
+                        }
+                        myChart.config.data.datasets.push(newDataset);
+                    }
+                }
+                myChart.update();
+
+                function resetZoomcorrChart()
+                 { 
+                                 var graph = Chart.getChart('corrChart')
+
+              graph.resetZoom();
+                 } 
+                                </script>
+</div>
+<button type="button" class="btn btn-outline-primary" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="resetZoomcorrChart()">Reset zoom</button>
+{% endblock %}

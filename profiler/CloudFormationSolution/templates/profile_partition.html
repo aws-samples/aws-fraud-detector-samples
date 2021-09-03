@@ -1,0 +1,148 @@
+{% block content %}
+<div class="container"> 
+    <canvas id="partChart" width="800" height="200"></canvas>
+    <button type="button" class="btn btn-outline-primary" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="resetZoomChart()">Reset zoom</button>
+    <p></p>
+    <div class="alert alert-primary d-flex align-items-center" role="alert">
+        <div>
+        <h5><b>Hints:</b></h5>
+        <p>1. You can toggle the legend to show or hide the corresponding plots.</p>
+        <p>2. You can zoom in and zoom out by scolling the mouse wheel over plots.</p>
+        <p>3. You can drag the mouse leftwards and rightwards to change x-axis ranges.</p>
+        </div>
+    </div>
+    <script>
+
+                var ctx = document.getElementById('partChart');
+
+                var myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: {{ p_warnings['labels']}},
+                        datasets: []
+                    },
+                    options: {
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Label Distribution over Time'
+                            },
+                            legend: {
+                                labels: {
+                                  usePointStyle: true,
+                                },
+                              },
+                            zoom: {
+                                pan: {
+                                      enabled: true,
+                                      mode: 'x',
+                                    },
+                                    zoom: {
+                                      wheel: {
+                                        enabled: true
+                                      },
+                                      mode: 'x',
+                                    },
+                              }
+                        },
+                        scales: {
+                            y: {
+                                title: {
+                                      display: true,
+                                      text: 'Count'
+                                },
+                                ticks: {
+                                    beginAtZero: true,
+                                    callback: function(value, index, values) {
+                                        if (parseInt(value) >= 1000) {
+                                            return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                                        } else {
+                                            return value;
+                                        }
+                                    }
+                                },
+                                stacked: true,
+                                position:'left',
+                            },
+                            y1: {
+                                title: {
+                                      color: '#75f542',
+                                      display: true,
+                                      text: 'Percentage'
+                                },
+                                position:'right',
+                                ticks: {
+                                    color: '#75f542',
+                                },
+                                min: 0, 
+                                    max: 1,
+                                grid: {
+                                      drawOnChartArea: false, // only want the grid lines for one axis to show up
+                                },
+
+
+                            },
+                            x: { 
+                                title: {
+                                      display: true,
+                                      text: 'Date'
+                                },
+                                stacked: true, 
+                                grid: {
+                                    display: false,
+                                }
+                            }
+                        }
+                    }
+                });
+
+                var newDataset = {
+                    label: 'Percentage of '.concat('',{{overview.Majority_label}}),
+                    data: {{p_stats['majority_pctg']}},
+                    hover: {mode: null},
+                    backgroundColor: '#75f542',
+                    borderColor: '#75f542',
+                    type:'line',
+                    yAxisID: 'y1',
+                    pointStyle:'line'
+                };
+                
+                myChart.config.data.datasets.push(newDataset);
+
+
+                var model = {{p_stats}};
+                var colors = {{label_colors}};
+                var hover_colors = {{hover_colors}};
+
+                for (label_value in colors) {
+                    var newDataset = {
+                        label: label_value,
+                        data: [],
+                        backgroundColor: colors[label_value],
+                        hoverBorderColor: '#ff0000',
+                        hoverBorderWidth: 2,
+                        hoverBackgroundColor: hover_colors[label_value],
+                        yAxisID: 'y',
+                            pointStyle:'rect'
+                    };
+                    
+                    for (value in model[label_value]) {
+                        newDataset.data.push(model[label_value][value]);
+                    }
+                    
+                    myChart.config.data.datasets.push(newDataset);
+
+                }
+
+
+                myChart.update();
+                
+                function resetZoomChart()
+                 { 
+                                 var graph = Chart.getChart('partChart')
+
+              graph.resetZoom();
+                 } 
+                                </script>
+</div>
+{% endblock %}

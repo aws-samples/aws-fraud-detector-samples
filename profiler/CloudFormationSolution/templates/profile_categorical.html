@@ -1,0 +1,166 @@
+{% block content %}
+<br>
+<div class="container">
+  <hr>
+  <h4>Categorical Analysis</h4> 
+    <div class="alert alert-primary d-flex align-items-center" role="alert">
+    The plot shows the top few categories with most records of non-majority labels. To inspect remaining categories, you can drag mouse leftwards and scroll wheels to zoom out.
+    </div>
+
+  {% for rec in cat_rec %} 
+  {% if rec.show_in_report %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Count</th>
+        <th scope="col"># Distinct</th>
+        <th scope="col">% Distinct</th>
+        <th scope="col"># Missing</th>
+        <th scope="col">% Missing</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>{{rec['_column']}}</b></td>
+        <td>{{rec['count']}}</td>
+        <td>{{rec['nunique']}}</td>
+        <td>{{'{0: >#016.2f}'.format(rec['nunique_pct']*100)}}%</td>
+        <td>{{rec['null']}}</td>
+        <td>{{'{0: >#016.2f}'.format(rec['null_pct']*100)}}%</td>
+      </tr>
+    </tbody>
+  </table>
+  <canvas id="{{rec['_column']}}" width="600" height="200"></canvas>
+  <div class="row">
+    <div class="col-6">
+      <script>
+      var bar_ctx = document.getElementById("{{rec['_column']}}");
+      var bar_chart = new Chart(bar_ctx, {
+        type: 'bar',
+        data: {
+          labels: {{rec['top_n']}},
+          datasets: []
+        },
+        options: {
+          plugins: {
+            title: {
+              display: true,
+              text: 'Label Distribution across Categories'
+            },
+            animation: {
+              duration: 10,
+            },
+            legend: {
+              labels: {
+                usePointStyle: true,
+              },
+            },
+            zoom: {
+              pan: {
+                enabled: true,
+                mode: 'x',
+              },
+              zoom: {
+                wheel: {
+                  enabled: true
+                },
+                mode: 'x',
+              },
+            }
+          },
+          scales: {
+            x: {
+              stacked: true,
+              gridLines: {
+                display: false
+              },
+              ticks: {
+                callback: function(val, index) {
+                  return this.getLabelForValue(val).toString().slice(0, 12);
+                },
+              },
+              grid: {
+                display: false,
+              },
+              max:100,
+            },
+            y: {
+              stacked: true,
+              ticks: {
+                suggestedMin: 0,
+                suggestedMax: 1
+              },
+            },
+            y1: {
+              title: {
+                color: '#75f542',
+                display: true,
+                text: 'Percentage'
+              },
+              position: 'right',
+              ticks: {
+                color: '#75f542',
+              },
+              min: 0,
+              max: 1,
+              grid: {
+                drawOnChartArea: false, // only want the grid lines for one axis to show up
+              },
+            },
+          },
+          legend: {
+            display: true
+          }
+        },
+      });
+      var majority_cls = {{overview.Majority_label}};
+      var pctg = {{rec['pctg']}};
+      var newDataset = {
+        label: 'Percentage of '.concat('', {{overview.Majority_label}}),
+        data: pctg[majority_cls],
+        hover: {
+          mode: null
+        },
+        backgroundColor: '#75f542',
+        borderColor: '#75f542',
+        type: 'line',
+        yAxisID: 'y1',
+        pointStyle: 'line'
+      };
+      bar_chart.config.data.datasets.push(newDataset);
+      var model = {{rec['label_count']}};
+      var colors = {{label_colors}};
+      var hover_colors = {{hover_colors}};
+      for(label_value in colors) {
+        if(label_value != 'Missing Labels') {
+          var newDataset = {
+            label: label_value,
+            data: [],
+            backgroundColor: colors[label_value],
+            hoverBorderColor: '#ff0000',
+            hoverBorderWidth: 2,
+            hoverBackgroundColor: hover_colors[label_value],
+            yAxisID: 'y',
+            pointStyle: 'rect'
+          };
+          for(value in model[label_value]) {
+            newDataset.data.push(model[label_value][value]);
+          }
+          bar_chart.config.data.datasets.push(newDataset);
+        }
+      }
+      bar_chart.update();
+
+      function resetZoomChartCat(ct) {
+        var graph = Chart.getChart(ct)
+        graph.resetZoom();
+      }
+      </script>
+    </div>
+  </div>
+  <button type="button" class="btn btn-outline-primary" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="resetZoomChartCat({{rec['_column']}})">Reset zoom</button>
+  <p></p> 
+  {% endif %} 
+  {% endfor %} 
+  {% endblock %}

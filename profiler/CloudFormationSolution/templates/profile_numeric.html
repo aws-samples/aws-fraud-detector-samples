@@ -1,0 +1,165 @@
+{% block content %}
+<br>
+<div class="container">
+  <hr>
+  <h4>Numeric Variables  </h4>
+  <br> {% for rec in num_rec %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Count</th>
+        <th scope="col"># Distinct</th>
+        <th scope="col">% Distinct</th>
+        <th scope="col"># Missing</th>
+        <th scope="col">% Missing</th>
+        <th scope="col">Mean</th>
+        <th scope="col">Min</th>
+        <th scope="col">Max</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>{{ rec['_column'] }}</b></td>
+        <td>{{ rec['count'] }}</td>
+        <td>{{ rec['nunique'] }}</td>
+        <td>{{ '{0: >#016.2f}'.format(rec['nunique_pct']*100) }}%</td>
+        <td>{{ rec['null'] }}</td>
+        <td>{{ '{0: >#016.2f}'.format(rec['null_pct']*100)}}%</td>
+        <td>{{ rec['mean'] }}</td>
+        <td>{{ rec['min'] }}</td>
+        <td>{{ rec['max'] }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <canvas id="{{rec['_column']}}" width="600" height="200"></canvas>
+  <div class="row">
+    <div class="col-6">
+      <script>
+      var ctx = document.getElementById("{{rec['_column']}}").getContext('2d');
+      var num_chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: {{rec['bin_label']}},
+          datasets: []
+        },
+        options: {
+          plugins: {
+            title: {
+              display: true,
+              text: 'Label Distribution across Numeric Ranges'
+            },
+            legend: {
+              labels: {
+                usePointStyle: true,
+              },
+            },
+            zoom: {
+              pan: {
+                enabled: true,
+                mode: 'x',
+              },
+              zoom: {
+                wheel: {
+                  enabled: true
+                },
+                mode: 'x',
+              },
+            }
+          },
+          scales: {
+            y: {
+              title: {
+                display: true,
+                text: 'Count'
+              },
+              ticks: {
+                beginAtZero: true,
+                callback: function(value, index, values) {
+                  if(parseInt(value) >= 1000) {
+                    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                  } else {
+                    return value;
+                  }
+                }
+              },
+              stacked: true,
+            },
+            y1: {
+              title: {
+                color: '#75f542',
+                display: true,
+                text: 'Percentage'
+              },
+              position: 'right',
+              ticks: {
+                color: '#75f542',
+              },
+              min: 0,
+              max: 1,
+              grid: {
+                drawOnChartArea: false, // only want the grid lines for one axis to show up
+              },
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Ranges'
+              },
+              stacked: true,
+              grid: {
+                display: false,
+              },
+            }
+          }
+        }
+      });
+      var majority_cls = {{overview.Majority_label}};
+      var pctg = {{rec['pctg']}};
+      var newDataset = {
+        label: 'Percentage of '.concat('', {{overview.Majority_label}}),
+        data: pctg[majority_cls],
+        hover: {
+          mode: null
+        },
+        backgroundColor: '#75f542',
+        borderColor: '#75f542',
+        type: 'line',
+        yAxisID: 'y1',
+        pointStyle: 'line'
+      };
+      num_chart.config.data.datasets.push(newDataset);
+      var model = {{rec['label_count']}};
+      var colors = {{label_colors}};
+      var hover_colors = {{hover_colors}};
+      for(label_value in colors) {
+        if(label_value != 'Missing Labels') {
+          var newDataset = {
+            label: label_value,
+            data: [],
+            backgroundColor: colors[label_value],
+            hoverBorderColor: '#ff0000',
+            hoverBorderWidth: 2,
+            hoverBackgroundColor: hover_colors[label_value],
+            yAxisID: 'y',
+            pointStyle: 'rect'
+          };
+          for(value in model[label_value]) {
+            newDataset.data.push(model[label_value][value]);
+          }
+          num_chart.config.data.datasets.push(newDataset);
+        }
+      }
+      num_chart.update();
+
+      function resetZoomChartNum(ct) {
+        var graph = Chart.getChart(ct)
+        graph.resetZoom();
+      }
+      </script>
+    </div>
+  </div>
+  <button type="button" class="btn btn-outline-primary" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="resetZoomChartNum({{rec['_column']}})">Reset zoom</button>
+  <p></p> 
+{% endfor %}
+{% endblock %}

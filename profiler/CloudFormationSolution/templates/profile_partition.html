@@ -1,148 +1,274 @@
 {% block content %}
 <div class="container"> 
-    <canvas id="partChart" width="800" height="200"></canvas>
-    <button type="button" class="btn btn-outline-primary" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="resetZoomChart()">Reset zoom</button>
-    <p></p>
-    <div class="alert alert-primary d-flex align-items-center" role="alert">
-        <div>
-        <h5><b>Hints:</b></h5>
-        <p>1. You can toggle the legend to show or hide the corresponding plots.</p>
-        <p>2. You can zoom in and zoom out by scolling the mouse wheel over plots.</p>
-        <p>3. You can drag the mouse leftwards and rightwards to change x-axis ranges.</p>
-        </div>
-    </div>
+    <canvas id="LabelCountChart" width="800" height="200"></canvas>
     <script>
 
-                var ctx = document.getElementById('partChart');
+        var ctx = document.getElementById('LabelCountChart');
 
-                var myChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: {{ p_warnings['labels']}},
-                        datasets: []
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: []
+            },
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Label distribution by daily count of records of each label class'
                     },
-                    options: {
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Label Distribution over Time'
-                            },
-                            legend: {
-                                labels: {
-                                  usePointStyle: true,
-                                },
-                              },
-                            zoom: {
-                                pan: {
-                                      enabled: true,
-                                      mode: 'x',
-                                    },
-                                    zoom: {
-                                      wheel: {
-                                        enabled: true
-                                      },
-                                      mode: 'x',
-                                    },
-                              }
+                    legend: {
+                        labels: {
+                          usePointStyle: true,
                         },
-                        scales: {
-                            y: {
-                                title: {
-                                      display: true,
-                                      text: 'Count'
-                                },
-                                ticks: {
-                                    beginAtZero: true,
-                                    callback: function(value, index, values) {
-                                        if (parseInt(value) >= 1000) {
-                                            return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                                        } else {
-                                            return value;
-                                        }
-                                    }
-                                },
-                                stacked: true,
-                                position:'left',
+                      },
+                    zoom: {
+                        pan: {
+                              enabled: true,
+                              mode: 'x',
                             },
-                            y1: {
-                                title: {
-                                      color: '#75f542',
-                                      display: true,
-                                      text: 'Percentage'
-                                },
-                                position:'right',
-                                ticks: {
-                                    color: '#75f542',
-                                },
-                                min: 0, 
-                                    max: 1,
-                                grid: {
-                                      drawOnChartArea: false, // only want the grid lines for one axis to show up
-                                },
-
-
+                            zoom: {
+                              wheel: {
+                                enabled: true
+                              },
+                              mode: 'x',
                             },
-                            x: { 
-                                title: {
-                                      display: true,
-                                      text: 'Date'
-                                },
-                                stacked: true, 
-                                grid: {
-                                    display: false,
+                      }
+                },
+                scales: {
+                    y: {
+                        title: {
+                              display: true,
+                              text: 'Count'
+                        },
+                        ticks: {
+                            beginAtZero: true,
+                            callback: function(value, index, values) {
+                                if (parseInt(value) >= 1000) {
+                                    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                                } else {
+                                    return value;
                                 }
                             }
+                        },
+                        stacked: true,
+                        position:'left',
+                    },
+                    x: { 
+                        title: {
+                              display: true,
+                              text: 'Date'
+                        },
+                        stacked: true, 
+                        grid: {
+                            display: false,
                         }
                     }
-                });
-
-                var newDataset = {
-                    label: 'Percentage of '.concat('',{{overview.Majority_label}}),
-                    data: {{p_stats['majority_pctg']}},
-                    hover: {mode: null},
-                    backgroundColor: '#75f542',
-                    borderColor: '#75f542',
-                    type:'line',
-                    yAxisID: 'y1',
-                    pointStyle:'line'
-                };
-                
-                myChart.config.data.datasets.push(newDataset);
-
-
-                var model = {{p_stats}};
-                var colors = {{label_colors}};
-                var hover_colors = {{hover_colors}};
-
-                for (label_value in colors) {
-                    var newDataset = {
-                        label: label_value,
-                        data: [],
-                        backgroundColor: colors[label_value],
-                        hoverBorderColor: '#ff0000',
-                        hoverBorderWidth: 2,
-                        hoverBackgroundColor: hover_colors[label_value],
-                        yAxisID: 'y',
-                            pointStyle:'rect'
-                    };
-                    
-                    for (value in model[label_value]) {
-                        newDataset.data.push(model[label_value][value]);
-                    }
-                    
-                    myChart.config.data.datasets.push(newDataset);
-
                 }
+            }
+        });
+
+        function showOrigLabelCount() {
+            var graph = Chart.getChart('LabelCountChart')
+            graph.data.datasets = [];
+
+            graph.data.labels = {{p_stats['original_labels']['_labels']}};
+
+            var model = {{p_stats['original_labels']}};
+            var colors = {{original_label_colors}};
+            for(label_value in colors) {
+                var newDataset = {
+                  label: label_value,
+                  data: [],
+                  backgroundColor: colors[label_value],
+                  hoverBorderColor: '#ff0000',
+                  hoverBorderWidth: 2,
+                  hoverBackgroundColor: '#F6FFFF',
+                  yAxisID: 'y',
+                  pointStyle: 'rect'
+                };
+                for(value in model[label_value]) {
+                  newDataset.data.push(model[label_value][value]);
+                }
+                graph.config.data.datasets.push(newDataset);
+            }
+            graph.update();
+        }
+
+        showOrigLabelCount();
+    </script>
+    <label type="button" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="resetZoomChart('LabelCountChart')">Reset zoom</label>
+    {% if overview['Mapped_fraud'] %}
+    <label type="button" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="showOrigLabelCount()">Show original labels</label>
+    <label type="button" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="showMappedLabelCount()">Show mapped labels</label>
+    {% endif %}
+</div>
+<div class="container"> 
+    <canvas id="LabelPctgChart" width="800" height="200"></canvas>
+    <script>
+
+        var ctx = document.getElementById('LabelPctgChart');
+
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: []
+            },
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Label distribution by daily percentage of records of each label class'
+                    },
+                    legend: {
+                        labels: {
+                          usePointStyle: true,
+                        },
+                      },
+                    zoom: {
+                        pan: {
+                              enabled: true,
+                              mode: 'x',
+                            },
+                            zoom: {
+                              wheel: {
+                                enabled: true
+                              },
+                              mode: 'x',
+                            },
+                      }
+                },
+                scales: {
+                    y: {
+                        title: {
+                              display: true,
+                              text: 'Percentage'
+                        },
+                        min: 0, 
+                        max: 1,
+                        
+                    },
+                    x: { 
+                        title: {
+                              display: true,
+                              text: 'Date'
+                        },
+                        stacked: true, 
+                        grid: {
+                            display: true,
+                        }
+                    }
+                }
+            }
+        });
+
+        function showOrigLabelPctg() {
+            var graph = Chart.getChart('LabelPctgChart')
+            graph.data.datasets = [];
+
+            graph.data.labels = {{p_stats['original_labels']['_labels']}};
+
+            var model = {{p_stats['original_labels']}};
+            var colors = {{original_label_colors}};
+            for(label_value in colors) {
+                var newDataset = {
+                  label: label_value,
+                  data: [],
+                  backgroundColor: colors[label_value],
+                  borderColor: colors[label_value],
+                  hoverBorderColor: '#ff0000',
+                  hoverBorderWidth: 5,
+                  hoverBackgroundColor: '#F6FFFF',
+                  yAxisID: 'y',
+                };
+                for(value in model[label_value.concat('','_pctg')]) {
+                  newDataset.data.push(model[label_value.concat('','_pctg')][value]);
+                }
+                graph.config.data.datasets.push(newDataset);
+            }
+            graph.update();
+        }
+
+        function resetZoomChart(ct)
+        { 
+            var graph = Chart.getChart(ct)
+            graph.resetZoom();
+        } 
+
+        showOrigLabelPctg();
 
 
-                myChart.update();
-                
-                function resetZoomChart()
-                 { 
-                                 var graph = Chart.getChart('partChart')
+        myChart.update();
+    </script>
+    <label type="button" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="resetZoomChart('LabelPctgChart')">Reset Zoom</label>
+    {% if overview['Mapped_fraud'] %}
+    <script type="text/javascript">
+        function showMappedLabelCount() {
+            var graph = Chart.getChart('LabelCountChart')
+            graph.data.datasets = [];
 
-              graph.resetZoom();
-                 } 
-                                </script>
+            graph.data.labels = {{p_stats['mapped_labels']['_labels']}};
+
+            var model = {{p_stats['mapped_labels']}};
+            var colors = {{label_colors}};
+            for(label_value in colors) {
+                var newDataset = {
+                  label: label_value,
+                  data: [],
+                  backgroundColor: colors[label_value],
+                  hoverBorderColor: '#ff0000',
+                  hoverBorderWidth: 2,
+                  hoverBackgroundColor: '#F6FFFF',
+                  yAxisID: 'y',
+                  pointStyle: 'rect'
+                };
+                for(value in model[label_value]) {
+                  newDataset.data.push(model[label_value][value]);
+                }
+                graph.config.data.datasets.push(newDataset);
+            }
+            graph.update();
+        }
+
+        function showMappedLabelPctg() {
+            var graph = Chart.getChart('LabelPctgChart')
+            graph.data.datasets = [];
+
+            graph.data.labels = {{p_stats['mapped_labels']['_labels']}};
+
+            var model = {{p_stats['mapped_labels']}};
+            var colors = {{label_colors}};
+            for(label_value in colors) {
+                var newDataset = {
+                  label: label_value,
+                  data: [],
+                  backgroundColor: colors[label_value],
+                  borderColor: colors[label_value],
+                  hoverBorderColor: '#ff0000',
+                  hoverBorderWidth: 2,
+                  hoverBackgroundColor: '#F6FFFF',
+                  yAxisID: 'y',
+                };
+                for(value in model[label_value.concat('','_pctg')]) {
+                  newDataset.data.push(model[label_value.concat('','_pctg')][value]);
+                }
+                graph.config.data.datasets.push(newDataset);
+            }
+            graph.update();
+        }
+    </script>
+    <label type="button" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="showOrigLabelPctg()">Show Original Labels</label>
+    <label type="button" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="showMappedLabelPctg()">Show Mapped Labels</label>
+    {% endif %}
+<p></p>
+    <div class="alert alert-success" role="alert">
+        <div>
+        <h5><p>Hints on the interactive graphs:</p></h5>
+        <p>1. You can zoom in and zoom out by scrolling the mouse wheel over plots.</p>
+        <p>2. You can drag the plots leftwards and rightwards to change x-axis ranges.</p>
+        3. You can toggle the legend to show or hide the corresponding bars or curves.
+        </div>
+    </div>
 </div>
 {% endblock %}

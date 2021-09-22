@@ -1,13 +1,18 @@
 {% block content %}
 <br>
 <div class="container">
+  <h3 id="Numeric">Numeric Feature Analysis  </h3>
   <hr>
-  <h4>Numeric Variables  </h4>
+      <div class="alert alert-info" role="alert">
+        The plot shows the number of records and percentage from each label class within numerical ranges. 
+    </div>
+
   <br> {% for rec in num_rec %}
-  <table class="table table-striped">
-    <thead>
+  <table class="table table">
+    <thead class="table-light">
       <tr>
         <th scope="col">Name</th>
+        <th scope="col">Type</th>
         <th scope="col">Count</th>
         <th scope="col"># Distinct</th>
         <th scope="col">% Distinct</th>
@@ -21,6 +26,7 @@
     <tbody>
       <tr>
         <td><b>{{ rec['_column'] }}</b></td>
+        <td>{{rec['_feature']}}</td>
         <td>{{ rec['count'] }}</td>
         <td>{{ rec['nunique'] }}</td>
         <td>{{ '{0: >#016.2f}'.format(rec['nunique_pct']*100) }}%</td>
@@ -47,7 +53,7 @@
           plugins: {
             title: {
               display: true,
-              text: 'Label Distribution across Numeric Ranges'
+              text: 'Label Distribution across Ranges of '.concat('',"{{rec['_column']}}")
             },
             legend: {
               labels: {
@@ -87,13 +93,13 @@
             },
             y1: {
               title: {
-                color: '#75f542',
+                color: '#15683e',
                 display: true,
                 text: 'Percentage'
               },
               position: 'right',
               ticks: {
-                color: '#75f542',
+                color: '#15683e',
               },
               min: 0,
               max: 1,
@@ -104,7 +110,10 @@
             x: {
               title: {
                 display: true,
-                text: 'Ranges'
+                text: 'Range of '.concat('',"{{rec['_column']}}"),
+                font: {
+                      size: 16,
+                },
               },
               stacked: true,
               grid: {
@@ -114,28 +123,36 @@
           }
         }
       });
-      var majority_cls = {{overview.Majority_label}};
-      var pctg = {{rec['pctg']}};
-      var newDataset = {
-        label: 'Percentage of '.concat('', {{overview.Majority_label}}),
-        data: pctg[majority_cls],
-        hover: {
-          mode: null
-        },
-        backgroundColor: '#75f542',
-        borderColor: '#75f542',
-        type: 'line',
-        yAxisID: 'y1',
-        pointStyle: 'line'
-      };
-      num_chart.config.data.datasets.push(newDataset);
-      var model = {{rec['label_count']}};
       var colors = {{label_colors}};
       var hover_colors = {{hover_colors}};
+      
+      var pctg = {{rec['pctg']}};
       for(label_value in colors) {
         if(label_value != 'Missing Labels') {
           var newDataset = {
-            label: label_value,
+            label: '\%'.concat(' ',label_value),
+            data: [],
+            hover: {
+              mode: null
+            },
+            backgroundColor: colors[label_value],
+            borderColor: colors[label_value],
+            type: 'line',
+            yAxisID: 'y1',
+            pointStyle: 'line'
+          };
+          for(value in pctg[label_value]) {
+            newDataset.data.push(pctg[label_value][value]);
+          }
+          num_chart.config.data.datasets.push(newDataset);
+        }
+      }
+      
+      var model = {{rec['label_count']}};
+      for(label_value in colors) {
+        if(label_value != 'Missing Labels') {
+          var newDataset = {
+            label: '\#'.concat(' ',label_value),
             data: [],
             backgroundColor: colors[label_value],
             hoverBorderColor: '#ff0000',
@@ -159,7 +176,19 @@
       </script>
     </div>
   </div>
-  <button type="button" class="btn btn-outline-primary" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="resetZoomChartNum({{rec['_column']}})">Reset zoom</button>
-  <p></p> 
+  <label type="button" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="resetZoomChartNum({{rec['_column']}})">Reset Zoom</label>
+
+  <div class="btn-group">
+    <label type="button" class="btn btn-warning dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+      Data Showing Options
+    </label>
+    <ul class="dropdown-menu dropdown-menu-dark">
+      <li><a class="dropdown-item" onclick="showCountOnly({{rec['_column']}})">Show Counts Only</a></li>
+      <li><a class="dropdown-item" onclick="showPctgOnly({{rec['_column']}})">Show Percentages Only</a></li>
+      <li><a class="dropdown-item" onclick="showAll({{rec['_column']}})">Show All</a></li>
+      <li><a class="dropdown-item" onclick="hideAll({{rec['_column']}})">Hide All</a></li>
+    </ul>
+  </div>
+  <p>&nbsp </p>
 {% endfor %}
 {% endblock %}

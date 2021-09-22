@@ -1,11 +1,11 @@
 {% block content %}
 <br>
 <div class="container"> 
-  <h3>Data & Label Maturity</h3>
+  <h3 id="Label">Data & Label Maturity</h3>
   <hr>
     <div class="alert alert-info">
       <p>
-        AWS Fraud Detector models require a minimum of 400 observations labeled as “fraud”. You can map multiple label values to "fraud". As part of the data gathering process it is important to ensure that records have had sufficient time to “mature”, i.e. that enough time has passed to insure “non-fraud" and  “fraud” records have been correctly identified.   
+        Amazon Fraud Detector models require a minimum of 400 observations labeled as “fraud” and 400 observations labeled as "non-fraud". You can map multiple label values to "fraud" or "non-fraud". As part of the data gathering process it is important to ensure that records have had sufficient time to “mature”, i.e. that enough time has passed to insure “non-fraud" and  “fraud” records have been correctly identified.   
       </p>
         <i>Note: It can often take 30 - 45 days (or more) to correctly identify fraudulent events.</i>
     </div>
@@ -25,6 +25,7 @@
               <thead>
                 <tr>
                   <th scope="col">Label Value</th>
+                  <th scope="col">Mapped Label Class</th>
                   <th scope="col">Count</th>
                   <th scope="col">Percentage</th>
                 </tr>
@@ -33,6 +34,7 @@
               {% for ix, rec in label.iterrows() %}
                   <tr>
                   <td>{{ rec['Name'] }}</td>
+                  <td>{{ rec['CLS'] }}</td>
                   <td>{{ rec['Count'] }}</td>
                   <td>{{ rec['Percentage'] }}</td>
                   </tr>

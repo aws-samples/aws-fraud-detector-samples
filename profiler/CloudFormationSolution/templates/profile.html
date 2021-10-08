@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Data Profile Report </title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <!-- d3 java script -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- Load d3.js -->
+    <script src="https://d3js.org/d3.v7.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js" integrity="sha512-UXumZrZNiOwnTcZSHLOfcTs0aos2MzBWHXOHOuB0J/R44QB0dwY5JgfbvljXcklVf65Gc4El6RjZ+lnwd2az2g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.1.1/chartjs-plugin-zoom.min.js" integrity="sha512-NxlWEbNbTV6acWnTsWRLIiwzOw0IwHQOYUCKBiu/NqZ+5jSy7gjMbpYI+/4KvaNuZ1qolbw+Vnd76pbIUYEG8g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@next"></script>
+
+
+</head>
+
+<style type="text/css">
+  body {
+  padding-top: 5rem;
+}
+</style>
+
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top" id="menu">
+  <div class="container">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-link" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">Home</a>
+        <a class="nav-link" href="#Overview">Data Overview</a>
+        <a class="nav-link" href="#Label">Label Analysis</a>
+        <a class="nav-link" href="#Categorical">Categorical Feature Analysis</a>
+        <a class="nav-link" href="#Numeric">Numeric Feature Analysis</a>
+        <a class="nav-link" href="#Correlation">Feature Correlation</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+<div class="container" id="home">
+    <h2>Amazon Fraud Detector CSV Profile</h2>
+    <hr>
+</div>
+
+    {% include "profile_overview.html" %}
+    {% include "profile_messages.html" %}
+    {% include "profile_label.html" %}
+    {% include "profile_partition.html" %}
+    {% include "profile_categorical.html" %}
+    {% include "profile_numeric.html" %}
+    {% include "profile_correlation.html" %}
+
+</body>

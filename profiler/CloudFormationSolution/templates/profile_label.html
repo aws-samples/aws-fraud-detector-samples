@@ -1,0 +1,48 @@
+{% block content %}
+<br>
+<div class="container"> 
+  <h3 id="Label">Data & Label Maturity</h3>
+  <hr>
+    <div class="alert alert-info">
+      <p>
+        Amazon Fraud Detector models require a minimum of 400 observations labeled as “fraud” and 400 observations labeled as "non-fraud". You can map multiple label values to "fraud" or "non-fraud". As part of the data gathering process it is important to ensure that records have had sufficient time to “mature”, i.e. that enough time has passed to insure “non-fraud" and  “fraud” records have been correctly identified.   
+      </p>
+        <i>Note: It can often take 30 - 45 days (or more) to correctly identify fraudulent events.</i>
+    </div>
+
+    {% if label_msg.length > 0 %}
+<div class="container"> 
+    <h5><span class="badge bg-secondary">Label Warnings </span></h5>
+    <div class="alert alert-warning">
+        {{label_msg.message}}   
+    </div>
+</div>
+{% endif %}
+
+    <div class="container"> 
+      <h5><span class="badge bg-secondary">Label Summary</span></h5>
+          <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th scope="col">Label Value</th>
+                  <th scope="col">Mapped Label Class</th>
+                  <th scope="col">Count</th>
+                  <th scope="col">Percentage</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for ix, rec in label.iterrows() %}
+                  <tr>
+                  <td>{{ rec['Name'] }}</td>
+                  <td>{{ rec['CLS'] }}</td>
+                  <td>{{ rec['Count'] }}</td>
+                  <td>{{ rec['Percentage'] }}</td>
+                  </tr>
+              {% endfor %}
+              </tbody>
+          </table>
+      </div>
+    </div>
+</div>
+
+{% endblock %}

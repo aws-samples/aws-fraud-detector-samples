@@ -1,0 +1,194 @@
+{% block content %}
+<br>
+<div class="container">
+  <h3 id="Numeric">Numeric Feature Analysis  </h3>
+  <hr>
+      <div class="alert alert-info" role="alert">
+        The plot shows the number of records and percentage from each label class within numerical ranges. 
+    </div>
+
+  <br> {% for rec in num_rec %}
+  <table class="table table">
+    <thead class="table-light">
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Type</th>
+        <th scope="col">Count</th>
+        <th scope="col"># Distinct</th>
+        <th scope="col">% Distinct</th>
+        <th scope="col"># Missing</th>
+        <th scope="col">% Missing</th>
+        <th scope="col">Mean</th>
+        <th scope="col">Min</th>
+        <th scope="col">Max</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>{{ rec['_column'] }}</b></td>
+        <td>{{rec['_feature']}}</td>
+        <td>{{ rec['count'] }}</td>
+        <td>{{ rec['nunique'] }}</td>
+        <td>{{ '{0: >#016.2f}'.format(rec['nunique_pct']*100) }}%</td>
+        <td>{{ rec['null'] }}</td>
+        <td>{{ '{0: >#016.2f}'.format(rec['null_pct']*100)}}%</td>
+        <td>{{ rec['mean'] }}</td>
+        <td>{{ rec['min'] }}</td>
+        <td>{{ rec['max'] }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <canvas id="{{rec['_column']}}" width="600" height="200"></canvas>
+  <div class="row">
+    <div class="col-6">
+      <script>
+      var ctx = document.getElementById("{{rec['_column']}}").getContext('2d');
+      var num_chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: {{rec['bin_label']}},
+          datasets: []
+        },
+        options: {
+          plugins: {
+            title: {
+              display: true,
+              text: 'Label Distribution across Ranges of '.concat('',"{{rec['_column']}}")
+            },
+            legend: {
+              labels: {
+                usePointStyle: true,
+              },
+            },
+            zoom: {
+              pan: {
+                enabled: true,
+                mode: 'x',
+              },
+              zoom: {
+                wheel: {
+                  enabled: true
+                },
+                mode: 'x',
+              },
+            }
+          },
+          scales: {
+            y: {
+              title: {
+                display: true,
+                text: 'Count'
+              },
+              ticks: {
+                beginAtZero: true,
+                callback: function(value, index, values) {
+                  if(parseInt(value) >= 1000) {
+                    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                  } else {
+                    return value;
+                  }
+                }
+              },
+              stacked: true,
+            },
+            y1: {
+              title: {
+                color: '#15683e',
+                display: true,
+                text: 'Percentage'
+              },
+              position: 'right',
+              ticks: {
+                color: '#15683e',
+              },
+              min: 0,
+              max: 1,
+              grid: {
+                drawOnChartArea: false, // only want the grid lines for one axis to show up
+              },
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Range of '.concat('',"{{rec['_column']}}"),
+                font: {
+                      size: 16,
+                },
+              },
+              stacked: true,
+              grid: {
+                display: false,
+              },
+            }
+          }
+        }
+      });
+      var colors = {{label_colors}};
+      var hover_colors = {{hover_colors}};
+      
+      var pctg = {{rec['pctg']}};
+      for(label_value in colors) {
+        if(label_value != 'Missing Labels') {
+          var newDataset = {
+            label: '\%'.concat(' ',label_value),
+            data: [],
+            hover: {
+              mode: null
+            },
+            backgroundColor: colors[label_value],
+            borderColor: colors[label_value],
+            type: 'line',
+            yAxisID: 'y1',
+            pointStyle: 'line'
+          };
+          for(value in pctg[label_value]) {
+            newDataset.data.push(pctg[label_value][value]);
+          }
+          num_chart.config.data.datasets.push(newDataset);
+        }
+      }
+      
+      var model = {{rec['label_count']}};
+      for(label_value in colors) {
+        if(label_value != 'Missing Labels') {
+          var newDataset = {
+            label: '\#'.concat(' ',label_value),
+            data: [],
+            backgroundColor: colors[label_value],
+            hoverBorderColor: '#ff0000',
+            hoverBorderWidth: 2,
+            hoverBackgroundColor: hover_colors[label_value],
+            yAxisID: 'y',
+            pointStyle: 'rect'
+          };
+          for(value in model[label_value]) {
+            newDataset.data.push(model[label_value][value]);
+          }
+          num_chart.config.data.datasets.push(newDataset);
+        }
+      }
+      num_chart.update();
+
+      function resetZoomChartNum(ct) {
+        var graph = Chart.getChart(ct)
+        graph.resetZoom();
+      }
+      </script>
+    </div>
+  </div>
+  <label type="button" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="resetZoomChartNum({{rec['_column']}})">Reset Zoom</label>
+
+  <div class="btn-group">
+    <label type="button" class="btn btn-warning dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+      Data Showing Options
+    </label>
+    <ul class="dropdown-menu dropdown-menu-dark">
+      <li><a class="dropdown-item" onclick="showCountOnly({{rec['_column']}})">Show Counts Only</a></li>
+      <li><a class="dropdown-item" onclick="showPctgOnly({{rec['_column']}})">Show Percentages Only</a></li>
+      <li><a class="dropdown-item" onclick="showAll({{rec['_column']}})">Show All</a></li>
+      <li><a class="dropdown-item" onclick="hideAll({{rec['_column']}})">Hide All</a></li>
+    </ul>
+  </div>
+  <p>&nbsp </p>
+{% endfor %}
+{% endblock %}

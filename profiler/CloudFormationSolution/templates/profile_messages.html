@@ -1,0 +1,92 @@
+{% block content %}
+<div class="container"> 
+  <h5 id="Overview"><span class="badge bg-secondary">Field Summary</span></h5>
+  <div class="alert alert-info">
+    <ol class="list-group list-group-flush">
+      <li class="list-group-item list-group-item-info border-0"><b>Inferred variable type</b>: during event creation in Amazon Fraud Detector, you will need to map variables in your data to a list of predefined <a href="https://docs.aws.amazon.com/frauddetector/latest/ug/create-a-variable.html#variable-types">variable types</a>. You should first try to select variable types to the best of your knowledge. If you cannot find the matching variable types or are unsure about the variable types of your variables, you can use the <i>Inferred Variable Type</i> column below as reference.</li>
+
+      <li class="list-group-item list-group-item-info border-0"><b>Count</b>: the total number of records (rows) in your data.</li>
+
+      <li class="list-group-item list-group-item-info border-0"><b># Distinct</b>: the number of unique values in this feature column.</li>
+
+      <li class="list-group-item list-group-item-info border-0"><b>% Distinct</b>: the ratio between <i># Distinct</i> and <i>Count</i>.</li>
+
+      <li class="list-group-item list-group-item-info border-0"><b># Missing</b>: the number of missing values in this feature column. </li>
+
+      <li class="list-group-item list-group-item-info border-0"><b>% Missing</b>: the ratio between <i># Missing</i> and <i>Count</i>. </li>
+    </ol>
+  </div>
+  <small>
+      <table class="table table-striped">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Data Type</th>
+              <th scope="col">Inferred Variable Type</th>
+              <th scope="col">Count</th>
+              <th scope="col"># Distinct</th>
+              <th scope="col">% Distinct</th>
+              <th scope="col"># Missing</th>
+              <th scope="col">% Missing</th>    
+            </tr>
+          </thead>
+          <tbody>
+          {% for ix, rec in df_stats.iterrows() %}
+              <tr>
+              <td>{{ rec['_column'] }}</td>
+              <td>{{ rec['_dtype'] }}</td>
+              <td>{{ rec['_feature'] }}</td>
+              <td>{{ rec['count'] }}</td>
+              <td>{{ rec['nunique'] }}</td>
+              <td>{{ '{0: >#016.2f}'.format(rec['nunique_pct']*100) }}%</td>
+              <td>{{ rec['null'] }}</td>
+              <td>{{ '{0: >#016.2f}'.format(rec['null_pct']*100)}}%</td>
+              </tr>
+          {% endfor %}
+          </tbody>
+      </table>
+    </small>
+  </div>
+</div>
+{% if warnings.shape[0] > 0 %}
+<small>
+<div class="container"> 
+    <h5><span class="badge bg-secondary">Field Warnings </span></h5>
+    <div class="alert alert-warning">
+        The following <b>{{warnings.shape[0]}}</b> fields may cause potential issues, check the message and consider excluding them from model training.   
+      </div>
+        <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Data Type</th>
+                <th scope="col">Inferred Variable Type</th>
+                <th scope="col">Count</th>
+                <th scope="col"># Distinct</th>
+                <th scope="col">% Distinct</th>
+                <th scope="col"># Missing</th>
+                <th scope="col">% Missing</th>
+                <th scope="col">Message</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for ix, rec in warnings.iterrows() %}
+                <tr>
+                <td>{{ rec['_column'] }}</td>
+                <td>{{ rec['_dtype'] }}</td>
+                <td>{{ rec['_feature'] }}</td>
+                <td>{{ rec['count'] }}</td>
+                <td>{{ rec['nunique'] }}</td>
+                <td>{{ '{0: >#016.2f}'.format(rec['nunique_pct']*100) }}%</td>
+                <td>{{ rec['null'] }}</td>
+                <td>{{ '{0: >#016.2f}'.format(rec['null_pct']*100)}}%</td>
+                <td>{{ rec['_message'] }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</small>
+{% endif %}
+{% endblock %}

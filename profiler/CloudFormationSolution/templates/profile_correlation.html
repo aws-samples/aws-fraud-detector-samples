@@ -1,0 +1,157 @@
+{% block content %}
+    <h3 id="Correlation">Feature and Label Correlations</h3>
+    <hr>
+    <div class="alert alert-info" role="alert">
+        <p>
+            The plot shows the correlation between pair-wise features and label. The label is treated as a categorical variable. For two numerical features, the correlation is the absolute value of <a url="https://en.wikipedia.org/wiki/Pearson_correlation_coefficient">Pearson correlation</a>. For a numerical feature and a categorical feature, <a url="https://en.wikipedia.org/wiki/Correlation_ratio">correlation ratio</a> is used for measuring the curvilinear relationship. For two categorical features, <a url="https://en.wikipedia.org/wiki/Cramer%27s_V">Cram&eacute;r's V</a> value is used which is based on Pearson's chi-squared statistic. 
+        </p>
+        After training an AFD model, you will get the feature importance distribution. You can combine that with feature correlation to identify potential label leakage. For example, if a feature has >0.99 correlation with label and it has significantly higher feature importance than other features, then there's a risk of label leakage on that feature. 
+
+    </div>
+
+<div class="container"> 
+    <canvas id="corrLabel" width="800"></canvas>
+</div>
+<label type="button" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="resetZoomcorrChart('corrLabel')">Reset Zoom</label>
+<p>&nbsp </p>
+<script>
+    var ctx_label = document.getElementById("corrLabel").getContext("2d");
+    var myChart = new Chart(ctx_label, {
+        type: 'bar',
+        data: {
+            labels: {{corr_rec['features']}},
+            datasets: [{
+                label: 'Correlation with label',
+                data: {{corr_rec['data_label']}},
+                backgroundColor: '#41d88c',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Correlation'
+                    },
+                }
+            },
+            plugins: {
+                zoom: {
+                  pan: {
+                    enabled: true,
+                    mode: 'x',
+                  },
+                  zoom: {
+                    wheel: {
+                      enabled: true
+                    },
+                    mode: 'x',
+                  },
+                }
+            }
+        }
+    });
+
+    function resetZoomcorrChart(ct)
+    { 
+        var graph = Chart.getChart(ct)
+        graph.resetZoom();
+    } 
+
+</script>
+
+{% if corr_rec.feature_corr %}    
+<div class="container"> 
+    <canvas id="corrChart" width="800"></canvas>
+</div>
+<label type="button" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="resetZoomcorrChart('corrChart')">Reset Zoom</label>
+<p>&nbsp </p>
+
+<script>
+    var ctx = document.getElementById("corrChart").getContext("2d");
+    window.myMatrix = new Chart(ctx, {
+        type: 'matrix',
+        data: {
+            datasets: [{
+                label: '',
+                data: {{corr_rec['data']}},
+                backgroundColor(context) {
+                    const value = context.dataset.data[context.dataIndex].v;
+                    const alpha = value*0.9+0.1;
+                    return d3.interpolateBuGn(alpha);
+                },
+                borderColor: "#ffffff",
+                borderWidth: 1,
+                width: ({chart}) => (chart.chartArea || {}).height / {{corr_rec['count']}} ,
+                height: ({chart}) =>(chart.chartArea || {}).height / {{corr_rec['count']}} ,
+                clip: 0
+            }]
+        },
+        options: {
+            aspectRatio: 1, 
+            plugins :{
+
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        title() {
+                            return '';
+                        },
+                        label(context) {
+                            const v = context.dataset.data[context.dataIndex];
+                            return ['x: ' + v.x, 'y: ' + v.y, 'corr: ' + v.v];
+                        }
+                    }
+                },
+                zoom: {
+                    pan: {
+                          enabled: true,
+                          mode: 'xy',
+                        },
+                    zoom: {
+                      wheel: {
+                        enabled: true
+                      },
+                      mode: 'xy',
+                    },
+                  }
+            },
+            scales: {
+                x: {
+                    type: 'category',
+                    labels: [],
+                    ticks: {
+                        display: true
+                    },
+                    gridLines: {
+                        display: false
+                    },
+                },
+                y: {
+                    type: 'category',
+                    labels: [],
+                    offset: true,
+                    reverse: true,
+                    ticks: {
+                        display: true
+                    },
+                    gridLines: {
+                        display: false
+                    },
+                }
+            }
+        }
+    });
+    function resetZoomcorrChart(ct)
+    { 
+        var graph = Chart.getChart(ct)
+        graph.resetZoom();
+    } 
+
+</script>
+{% endif %}
+{% endblock %}

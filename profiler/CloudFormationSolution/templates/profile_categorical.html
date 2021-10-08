@@ -1,0 +1,331 @@
+{% block content %}
+<br>
+<div class="container">
+  <h3 id="Categorical">Categorical Feature Analysis</h3> 
+    <hr>
+    <div class="alert alert-info" role="alert">
+      <p>
+        The plot shows the label distribution across categories for a categorical feature. 
+        We have several sorting options from which you can choose the one best fits your needs:
+      </p>
+      <ol class="list-group list-group-numbered list-group-flush">
+        <li class="list-group-item list-group-item-info border-0"><b>Sort by most records</b>: sort by size of each category in descending order (default).</li>
+        <li class="list-group-item list-group-item-info border-0"><b>Sort by most records of label={{overview.Majority_label}}</b>: sort by number of {{overview.Majority_label}} records in each category in descending order. Assuming label={{overview.Majority_label}} represents legitimate events, then those categories are the major legitimate population.</li>
+        <li class="list-group-item list-group-item-info border-0"><b>Sort by most records of label&#8800{{overview.Majority_label}}</b>: sort by number of records with label&#8800{{overview.Majority_label}} in each category in descending order. Assuming label={{overview.Majority_label}} represents legitimate events, then those categories are the major fraud population.</li>
+        <li class="list-group-item list-group-item-info border-0"><b>Sort by lowest percentage of label={{overview.Majority_label}}</b>: sort by percentage of records with label&#8800{{overview.Majority_label}} in each category in ascending order. Assuming label='{{overview.Majority_label}} represents legitimate events, then those categories have highest fraud rate.</li>
+      </ol>
+      <p></p>
+      <p>In each sorting option we display the top 100 categories by default, and you can drag the plot and scroll wheels to see up to 500 categories in total.
+      </p>
+      You can choose which data to plot from the data showing options button. You can also toggle to legends to show or hide the corresponding bars or curves.     
+    </div>
+    <p></p>
+  <script>
+    var funcs = {}  
+    const sort_options = ['sort_pctg','sort_total', 'sort_majority', 'sort_nonmajority']
+      
+    function resetZoomChartCat(ct) {
+      var graph = Chart.getChart(ct)
+      graph.resetZoom();
+    }
+
+    function showCountOnly(ct) {
+      var graph = Chart.getChart(ct)
+      graph.data.datasets.forEach((dataset) => {
+          if (dataset.yAxisID=='y') {
+            dataset.hidden=false;
+          }
+          else {
+            dataset.hidden=true;
+          }
+      });
+      graph.options.scales.x.grid.display=false;
+      graph.update();
+    }
+
+    function showPctgOnly(ct) {
+      var graph = Chart.getChart(ct)
+      graph.data.datasets.forEach((dataset) => {
+          if (dataset.yAxisID=='y1') {
+            dataset.hidden=false;
+          }
+          else {
+            dataset.hidden=true;
+          }
+      });
+      graph.options.scales.x.grid.display=true;
+      graph.update();
+    }
+
+    function showAll(ct) {
+      var graph = Chart.getChart(ct)
+      graph.data.datasets.forEach((dataset) => {
+          dataset.hidden=false;
+      });
+      graph.options.scales.x.grid.display=false;
+      graph.update();
+    }
+
+    function hideAll(ct) {
+      var graph = Chart.getChart(ct)
+      graph.data.datasets.forEach((dataset) => {
+          dataset.hidden=true;
+      });
+      graph.options.scales.x.grid.display=true;
+      graph.update();
+    }
+    
+  </script>
+
+  {% for rec in cat_rec %} 
+  {% if rec.show_in_report %}
+  <table class="table table">
+    <thead class="table-light">
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Type</th>
+        <th scope="col">Count</th>
+        <th scope="col"># Distinct</th>
+        <th scope="col">% Distinct</th>
+        <th scope="col"># Missing</th>
+        <th scope="col">% Missing</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>{{rec['_column']}}</b></td>
+        <td>{{rec['_feature']}}</td>
+        <td>{{rec['count']}}</td>
+        <td>{{rec['nunique']}}</td>
+        <td>{{'{0: >#016.2f}'.format(rec['nunique_pct']*100)}}%</td>
+        <td>{{rec['null']}}</td>
+        <td>{{'{0: >#016.2f}'.format(rec['null_pct']*100)}}%</td>
+      </tr>
+    </tbody>
+  </table>
+  <canvas id="{{rec['_column']}}" width="600" height="200"></canvas>
+  <div class="row">
+    <div class="col-6">
+      <script>
+      var bar_ctx = document.getElementById("{{rec['_column']}}");
+      var bar_chart = new Chart(bar_ctx, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          plugins: {
+            title: {
+              display: true,
+              text: 'Label Distribution across Categories of '.concat('',"{{rec['_column']}}")
+            },
+            animation: {
+              duration: 10,
+            },
+            legend: {
+              labels: {
+                usePointStyle: true,
+              },
+            },
+            zoom: {
+              pan: {
+                enabled: true,
+                mode: 'x',
+              },
+              zoom: {
+                wheel: {
+                  enabled: true
+                },
+                mode: 'x',
+              },
+            }
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: "{{rec['_column']}}",
+                font: {
+                      size: 16,
+                },
+              },
+              stacked: true,
+              gridLines: {
+                display: false
+              },
+              ticks: {
+                callback: function(val, index) {
+                  return this.getLabelForValue(val).toString().slice(0, 12);
+                },
+              },
+              grid: {
+                display: false,
+              },
+              max:100,
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Count'
+              },
+              stacked: true,
+              ticks: {
+                suggestedMin: 0,
+                suggestedMax: 1
+              },
+            },
+            y1: {
+              title: {
+                color: '#15683e',
+                display: true,
+                text: 'Percentage'
+              },
+              position: 'right',
+              ticks: {
+                color: '#15683e',
+              },
+              min: 0,
+              max: 1,
+              grid: {
+                drawOnChartArea: false, // only want the grid lines for one axis to show up
+              },
+            },
+          },
+          legend: {
+            display: true
+          }
+        },
+      });
+
+      
+      funcs['sortByType'.concat('_',{{rec['_name']}})] = function(ct,sort_type) {
+          var graph = Chart.getChart(ct)
+          graph.data.datasets = [];
+
+          switch (sort_type) {
+            case 'sort_total':
+                var model = {{rec['sort_total']}};
+                graph.options.plugins.title.text = 'Label distribution across '.concat('',"{{rec['_column']}}").concat('',' categories with most total count of records.')
+                showCountOnly(ct);
+                break;
+            case 'sort_majority':
+                var model = {{rec['sort_majority']}};
+                graph.options.plugins.title.text = 'Label distribution across '.concat('',"{{rec['_column']}}").concat('',' categories with most records of label=').concat('',"{{overview.Majority_label}}")
+                showCountOnly(ct);
+                break;
+            case 'sort_nonmajority':
+                var model = {{rec['sort_nonmajority']}};
+                graph.options.plugins.title.text = 'Label distribution across '.concat('',"{{rec['_column']}}").concat('',' categories with most records of label\u2260').concat('',"{{overview.Majority_label}}")
+                showCountOnly(ct);
+                break;
+            case 'sort_pctg':
+                var model = {{rec['sort_pctg']}};
+                graph.options.plugins.title.text = 'Label distribution across '.concat('',"{{rec['_column']}}").concat('',' categories with lowest percentage of label=').concat('',"{{overview.Majority_label}}")
+                showPctgOnly(ct);
+                break;
+          }
+          
+          graph.data.labels = model['LABELS'];
+          var colors = {{label_colors}};
+          var hover_colors = {{hover_colors}};
+
+          for(label_value in model) {
+            if(label_value in colors) {
+              var newDataset = {
+                label: '\%'.concat(' ',label_value),
+                data: [],
+                hover: {
+                  mode: null
+                },
+                backgroundColor: colors[label_value],
+                borderColor: colors[label_value],
+                type: 'line',
+                yAxisID: 'y1',
+                pointStyle: 'line'
+              };
+              for(value in model[label_value.concat('','_pctg')]) {
+                newDataset.data.push(model[label_value.concat('','_pctg')][value]);
+              }
+              graph.config.data.datasets.push(newDataset);
+            }
+          }
+
+          
+          for(label_value in model) {
+            if(label_value in colors) {
+              var newDataset = {
+                label: '\#'.concat(' ',label_value),
+                data: [],
+                backgroundColor: colors[label_value],
+                hoverBorderColor: '#ff0000',
+                hoverBorderWidth: 2,
+                hoverBackgroundColor: hover_colors[label_value],
+                yAxisID: 'y',
+                pointStyle: 'rect'
+              };
+              for(value in model[label_value]) {
+                newDataset.data.push(model[label_value][value]);
+              }
+              graph.config.data.datasets.push(newDataset);
+            }
+          }
+
+          
+
+          graph.update();
+          
+          switch (sort_type) {
+            case 'sort_total':
+                showCountOnly(ct);
+                break;
+            case 'sort_majority':
+                showCountOnly(ct);
+                break;
+            case 'sort_nonmajority':
+                showCountOnly(ct);
+                break;
+            case 'sort_pctg':
+                showPctgOnly(ct);
+                break;
+          }
+      }
+
+
+      funcs['sortByType'.concat('_',{{rec['_name']}})]({{rec['_column']}},'sort_total');
+
+      </script>
+    </div>
+  </div>
+  <label type="button" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="resetZoomChartCat({{rec['_column']}})">Reset Zoom</label>
+
+
+  <div class="btn-group">
+    <label type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+      Data Sort Options
+    </label>
+    <ul class="dropdown-menu dropdown-menu-dark">
+      <li><a class="dropdown-item" onclick="funcs['sortByType'.concat('_',{{rec['_name']}})]({{rec['_column']}},'sort_total')">Sort by Total Count</a></li>
+      <li><a class="dropdown-item" onclick="funcs['sortByType'.concat('_',{{rec['_name']}})]({{rec['_column']}},'sort_majority')">Sort by Most Count of label={{overview.Majority_label}}</a></li>
+      <li><a class="dropdown-item" onclick="funcs['sortByType'.concat('_',{{rec['_name']}})]({{rec['_column']}},'sort_nonmajority')">Sort by Most Count of label&#8800{{overview.Majority_label}}</a></li>
+      <li><a class="dropdown-item" onclick="funcs['sortByType'.concat('_',{{rec['_name']}})]({{rec['_column']}},'sort_pctg')">Sort by Lowest Percentage of label={{overview.Majority_label}}</a></li>
+    </ul>
+  </div>
+
+  <div class="btn-group">
+    <label type="button" class="btn btn-warning dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+      Data Showing Options
+    </label>
+    <ul class="dropdown-menu dropdown-menu-dark">
+      <li><a class="dropdown-item" onclick="showCountOnly({{rec['_column']}})">Show Counts Only</a></li>
+      <li><a class="dropdown-item" onclick="showPctgOnly({{rec['_column']}})">Show Percentages Only</a></li>
+      <li><a class="dropdown-item" onclick="showAll({{rec['_column']}})">Show All</a></li>
+      <li><a class="dropdown-item" onclick="hideAll({{rec['_column']}})">Hide All</a></li>
+    </ul>
+  </div>
+
+
+  <p>&nbsp </p>
+  {% endif %} 
+  {% endfor %} 
+  {% endblock %}

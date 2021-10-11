@@ -23,7 +23,7 @@ Amazon Fraud Detector is a fully managed service that makes it easy to identify 
 
 - data folder, provides sample data sets for OFI and TFI model types. 
   - registration_data_20K_full.csv and registration_data_20K_minimum.csv, provide sample data sets for OFI. 
-  - transaction_data_K_full.csv, provides sample data set for TFI. 
+  - transaction_data_100K_full.csv, provides sample data set for TFI. 
 
 ## License
 

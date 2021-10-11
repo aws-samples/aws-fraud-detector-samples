@@ -1,8 +1,8 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: >
-      Automatically clean and profile your CSV data. 
+      Automatically format and profile your CSV data. 
       Fill in the fields below, click create stack, and wait a few minutes. 
-      The cleaned data set and report.html will be automatically 
+      The formatted data set and profiling report will be automatically 
       saved to the same S3 bucket as your CSV data file. 
       Suppose your CSV file is s3://mybucket/myfile.csv, those will be saved in folder s3://mybucket/afd_data_myfile/. 
 Outputs:
@@ -21,7 +21,7 @@ Outputs:
         - !Ref "AWS::Region"
         - '#etl:tab=jobs'
   InputS3Location:
-    Description: S3 path of the input CSV. The cleaned data set and report.html are saved to the same S3 bucket.
+    Description: S3 path of the input CSV. The formatted data set and report.html are saved to the same S3 bucket.
     Value: !Ref CSVFilePath
 Resources:
   S3CustomResource:
@@ -48,7 +48,6 @@ Resources:
           import boto3
           import cfnresponse
           import codecs
-          import urllib3
           import csv
 
           def handler(event, context):         
@@ -114,9 +113,8 @@ Resources:
                                       reason=str(e))
                   try:
                       # Download Glue script
-                      url_glue_script = 'https://amazon-frauddetector-cfn-templates.s3.amazonaws.com/AFD_Data_Cleaner/afd_data_analyzer_glue_script.py'
-                      http_glue = urllib3.PoolManager()
-                      r_glue_script = http_glue.request('GET', url_glue_script)
+                      r_glue_script = s3.meta.client.get_object(Bucket= 'amazon-frauddetector-cfn-templates', Key='AFD_Data_Cleaner/afd_data_analyzer_glue_script.py') 
+                      r_glue_script = r_glue_script['Body'].read()
 
                       # Get Glue script location
                       glueJobName = event['ResourceProperties']['Data_Analyze_Glue_Job']
@@ -139,7 +137,7 @@ Resources:
                       # Save Glue script
                       s3.meta.client.put_object(Bucket=the_bucket,
                                      Key=file_name,
-                                     Body = r_glue_script.data)
+                                     Body = r_glue_script)
 
                       # Start glue job
                       response = client.start_job_run(JobName = glueJobName)   
@@ -176,7 +174,6 @@ Resources:
             Service:
             - lambda.amazonaws.com
         Version: '2012-10-17'
-      Path: "/"
       Policies:
         - PolicyDocument:
             Statement:
@@ -214,10 +211,21 @@ Resources:
         '--EventTimestampColumn': !Ref EventTimestampColumn
         '--CSVFilePath': !Ref CSVFilePath
         '--FileDelimiter': !Ref FileDelimiter
-        '--CleanCSV': !Ref CleanCSV
+        '--FormatCSV': !Ref FormatCSV
         '--ProfileCSV': !Ref ProfileCSV
-        '--additional-python-modules': 'botocore>=1.20.12,boto3>=1.17.12,pyarrow==2,awswrangler==2.9.0,Jinja2'
-      Description: Glue job to clean csv and profile data
+        '--DropLabelMissingRows': !Ref DropLabelMissingRows
+        '--DropTimestampMissingRows': !Ref DropTimestampMissingRows
+        '--additional-python-modules': 'botocore>=1.20.12,boto3>=1.17.12,pyarrow==2,awswrangler==2.9.0,Jinja2,fsspec==0.9.0'
+        '--FraudLabels': !Join
+            - ''
+            - - !Ref FraudLabels
+              - ' '
+        '--FeatureCorr': !Ref FeatureCorr
+        '--ReportSuffix': !Join
+            - ''
+            - - !Ref ReportSuffix
+              - ' '
+      Description: Glue job to format csv and profile data
   
       
   AWSGlueJobRole:
@@ -226,7 +234,6 @@ Resources:
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole'
         - 'arn:aws:iam::aws:policy/AWSGlueConsoleFullAccess'
-        - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -236,6 +243,35 @@ Resources:
             Principal:
               Service:
                 - glue.amazonaws.com
+      Policies:
+        - PolicyDocument:
+            Statement:
+            - Action:
+              - s3:Get*
+              - s3:List*
+              - s3:Create*
+              - s3:Head*
+              - s3:Put*
+              - s3:Upload*
+              - s3-object-lambda:Get*
+              - s3-object-lambda:List*
+              - s3-object-lambda:Create*
+              - s3-object-lambda:Head*
+              - s3-object-lambda:Put*
+              - s3-object-lambda:Upload*
+              Effect: Allow
+              Resource: 
+                - !join
+                  - ''
+                  - - arn:aws:s3:::
+                    - !Select [0, !Split ["s3://", !Ref CSVFilePath]]
+                    - /*
+                - !join
+                  - ''
+                  - - arn:aws:s3:::
+                    - !Select [0, !Split ["s3://", !Ref CSVFilePath]]
+            Version: '2012-10-17'
+          PolicyName: !Sub ${AWS::StackName}-${AWS::Region}-AWSGlue-S3
 
 Parameters:
   CSVFilePath:
@@ -254,9 +290,9 @@ Parameters:
     Type: String
     Description: Column name of label in your CSV file. 
     Default: 'EVENT_LABEL'
-  CleanCSV:
+  FormatCSV:
     Type: String
-    Description: Do you want to clean your CSV? This will create and save a new copy of data. 
+    Description: Do you want to format your CSV to AFD required formats? This will create and save a new copy of data. 
     Default: 'Yes'
     AllowedValues:
       - 'Yes'
@@ -268,6 +304,36 @@ Parameters:
     AllowedValues:
       - 'Yes'
       - 'No'
+  DropTimestampMissingRows:
+    Type: String
+    Description: Do you want to drop rows with missing EVENT_TIMESTAMP? 
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  DropLabelMissingRows:
+    Type: String
+    Description: Do you want to drop rows with missing EVENT_LABELS? 
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  FraudLabels:
+    Type: String
+    Description: (Optional) Specify label values of fraud events, separated by comma. 
+    Default: ' '
+  FeatureCorr:
+    Type: String
+    Description: Do you want to show pair-wise feature correlation in profiling report? This may take some time. 
+    Default: 'No'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  ReportSuffix:
+    Type: String
+    Description: (Optional) Suffix name of profiling report. 
+    Default: ' '
+
 
 Metadata: 
   AWS::CloudFormation::Interface: 
@@ -282,7 +348,17 @@ Metadata:
           - FileDelimiter
       - 
         Label: 
-          default: "Choose operations:"
+          default: "Format CSV:"
         Parameters: 
-          - CleanCSV
+          - FormatCSV
+          - DropTimestampMissingRows
+          - DropLabelMissingRows
+      - 
+        Label: 
+          default: "Profile CSV:"
+        Parameters: 
           - ProfileCSV
+          - FeatureCorr
+          - FraudLabels
+          - ReportSuffix
+          

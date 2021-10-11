@@ -5,9 +5,9 @@ Amazon Fraud Detector is a fully managed service that makes it easy to identify 
 
 #### Sample Notebooks
 
-- Fraud_Detector_End_to_End_OFI.ipynb, provides an example of building a detector using Amazon Fraud Detector’s APIs for Online Fraud Inisights (OFI) model type. 
+- Fraud_Detector_End_to_End_External_Data_OFI.ipynb, provides an example of building a detector using Amazon Fraud Detector’s APIs for Online Fraud Inisights (OFI) model type using external data sets. 
 
-- Fraud_Detector_End_to_End_TFI.ipynb, provides an example of building a detector using Amazon Fraud Detector’s APIs for Transaction Fraud Inisights (TFI) model type. 
+- Fraud_Detector_End_to_End_Stored_Data.ipynb, provides an example of building a detector using Amazon Fraud Detector’s APIs for Transaction Fraud Inisights (TFI) or OFI model type using data stored in Amazon Fraud Detector.  
 
 - Fraud_Detector_Send_Event.ipynb, provides an example of calling Amazon Fraud Detector's SendEvent API. 
   

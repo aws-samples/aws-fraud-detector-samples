@@ -261,22 +261,22 @@ Resources:
               - s3-object-lambda:Upload*
               Effect: Allow
               Resource: 
-                - !join
+                - !Join
                   - ''
-                  - - arn:aws:s3:::
-                    - !Select [0, !Split ["s3://", !Ref CSVFilePath]]
-                    - /*
-                - !join
+                  - - 'arn:aws:s3:::'
+                    - !Select [2, !Split ["/", !Ref CSVFilePath]]
+                    - '/*'
+                - !Join
                   - ''
-                  - - arn:aws:s3:::
-                    - !Select [0, !Split ["s3://", !Ref CSVFilePath]]
+                  - - 'arn:aws:s3:::'
+                    - !Select [2, !Split ["/", !Ref CSVFilePath]]
             Version: '2012-10-17'
           PolicyName: !Sub ${AWS::StackName}-${AWS::Region}-AWSGlue-S3
 
 Parameters:
   CSVFilePath:
     Type: String
-    Description: S3 path to your CSV file. E.g. s3://mybucket/myfile.csv. 
+    Description: S3 path to your CSV file. E.g. s3://mybucket/myfile.csv
     Default: 's3://'
   FileDelimiter:
     Type: String
@@ -284,54 +284,54 @@ Parameters:
     Default: ','
   EventTimestampColumn:
     Type: String
-    Description: Column name of event timestamp in your CSV file. 
+    Description: Column name of event timestamp in your CSV file. This is a mandatory column for AFD. 
     Default: 'EVENT_TIMESTAMP'
   LabelColumn:
     Type: String
-    Description: Column name of label in your CSV file. 
+    Description: Column name of label in your CSV file. This is a mandatory column for AFD. 
     Default: 'EVENT_LABEL'
   FormatCSV:
     Type: String
-    Description: Do you want to format your CSV to AFD required formats? This will create and save a new copy of data. 
+    Description: Do you want to format your CSV to AFD required formats? This will create and save a new copy of CSV data. 
     Default: 'Yes'
     AllowedValues:
       - 'Yes'
       - 'No'
   ProfileCSV:
     Type: String
-    Description: Do you want to profile your data?
+    Description: Do you want to profile your data? This will generate an HTML report of your data statistics and potential AFD validation errors. 
     Default: 'Yes'
     AllowedValues:
       - 'Yes'
       - 'No'
   DropTimestampMissingRows:
     Type: String
-    Description: Do you want to drop rows with missing EVENT_TIMESTAMP? 
+    Description: Do you want to drop rows with missing EVENT_TIMESTAMP? Recommend Yes for all AFD models. 
     Default: 'Yes'
     AllowedValues:
       - 'Yes'
       - 'No'
   DropLabelMissingRows:
     Type: String
-    Description: Do you want to drop rows with missing EVENT_LABELS? 
+    Description: Do you want to drop rows with missing EVENT_LABELS? Recommend Yes for AFD model with external events. 
     Default: 'Yes'
     AllowedValues:
       - 'Yes'
       - 'No'
   FraudLabels:
     Type: String
-    Description: (Optional) Specify label values of fraud events, separated by comma. 
+    Description: (Optional) Specify label values to be mapped to FRAUD, separated by comma. E.g. suspicious, fraud. If you don't want to map labels, leave this option blank and reprot will show distribution of original label values. 
     Default: ' '
   FeatureCorr:
     Type: String
-    Description: Do you want to show pair-wise feature correlation in profiling report? This may take some time. 
+    Description: Do you want to show pair-wise feature correlation in report? The correlation shows that for each pair of features how much one feature depends on the other. This calculation may take some time. 
     Default: 'No'
     AllowedValues:
       - 'Yes'
       - 'No'
   ReportSuffix:
     Type: String
-    Description: (Optional) Suffix name of profiling report. 
+    Description: (Optional) Suffix name of profiling report. The report will be named as report_<ReportSuffix>.html. 
     Default: ' '
 
 
@@ -358,7 +358,7 @@ Metadata:
           default: "Profile CSV:"
         Parameters: 
           - ProfileCSV
+          - ReportSuffix
           - FeatureCorr
           - FraudLabels
-          - ReportSuffix
           

@@ -815,7 +815,6 @@ ReportSuffix = job_args['ReportSuffix']
 logging.info(job_args)
 
 
-MANDATORY_VARIABLES = ['EVENT_TIMESTAMP','EVENT_LABEL','EVENT_ID','ENTITY_ID','LABEL_TIMESTAMP','ENTITY_TYPE',EventTimestampCol,LabelCol]
 html_templates = ['https://raw.githubusercontent.com/haozhouamzn/aws-fraud-detector-samples/master/profiler/CloudFormationSolution/templates/profile.html',
 'https://raw.githubusercontent.com/haozhouamzn/aws-fraud-detector-samples/master/profiler/CloudFormationSolution/templates/profile_categorical.html',
 'https://raw.githubusercontent.com/haozhouamzn/aws-fraud-detector-samples/master/profiler/CloudFormationSolution/templates/profile_df.html',
@@ -881,7 +880,7 @@ if CleanCSV==True:
     logging.info('Converting headers')
     dfc = {EventTimestampCol:'EVENT_TIMESTAMP',LabelCol:'EVENT_LABEL'}                      
     for c in df.columns:
-        if c not in MANDATORY_VARIABLES:
+        if c not in dfc.keys():
             # Convert header to lower cases and remove spaces
             dfc[c] = re.sub(r'[^a-z0-9]+', '_', c.lower())
     df.rename(columns=dfc,inplace=True)

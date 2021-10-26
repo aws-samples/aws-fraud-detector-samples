@@ -17,7 +17,9 @@ Amazon Fraud Detector is a fully managed service that makes it easy to identify 
 
 #### Automated Data Profiler
 
-- The AWS CloudFormation template - afd_data_analyzer_cfn_template.yaml and Glue job script - afd_data_analyzer_glue_script.py under profiler/CloudFormationSolution provides an automated profiler using AWS CloudFormation, AWS Lambda, and AWS Glue. To use it, follow steps below:
+The profiler generates an intuitive and comprehensive report of your dataset, including variable statistics, label distribution, categorical and numeric analysis, and even variable&label correlations. It provides guidance on variable types as well as an option to transform the dataset into the format in compliance with AFD. Refer to [this blog post](https://aws.amazon.com/blogs/machine-learning/train-models-faster-with-an-automated-data-profiler-for-amazon-fraud-detector/) for more information. 
+
+To use it, follow steps below:
 
 1. Open the [CloudFormation quick launch link.](https://us-west-2.console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/create/review?templateURL=https://amazon-frauddetector-cfn-templates.s3.amazonaws.com/AFD_Data_Cleaner/afd_data_analyzer_cfn_template.yaml)
 2. Fill in the parameters including: path to your CSV file in S3, some header names, and options. 

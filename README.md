@@ -1,7 +1,7 @@
 ## Amazon Fraud Detector Samples 
 
 
-Amazon Fraud Detector is a fully managed service that makes it easy to identify potentially fraudulent online activities such as online payment fraud and the creation of fake accounts. This repository contains a collection of example AWS solutions and Jupyter notebooks that interact with the Amazon Fraud Detector APIs.  
+[Amazon Fraud Detector](https://aws.amazon.com/fraud-detector/) is a fully managed service that makes it easy to identify potentially fraudulent online activities such as online payment fraud and the creation of fake accounts. This repository contains a collection of example AWS solutions and Jupyter notebooks that interact with the Amazon Fraud Detector APIs. For more videos, blogs, and tutorials about Amazon Fraud Detector, refer to [Amazon Fraud Detector resource](https://aws.amazon.com/fraud-detector/resources/?blog-posts-cards.sort-by=item.additionalFields.createdDate&blog-posts-cards.sort-order=desc). 
 
 #### Sample Notebooks
 

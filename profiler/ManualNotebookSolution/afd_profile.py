@@ -2,7 +2,6 @@ import urllib3
 import numpy as np
 import pandas as pd
 import awswrangler as wr
-from awsglue.utils import getResolvedOptions
 import boto3
 import os
 import json
@@ -798,25 +797,10 @@ def config_html(config,df):
     colors_original['Missing Labels'] = base_colors[count2]
     return colors, hover_colors, colors_original
 
-def read_csv_from_s3(s3_path,datatype=object):
+def read_csv_from_s3(s3_path,datatype=object, delimiter=','):
     dfs = wr.s3.read_csv(path=s3_path, dtype=datatype, sep=delimiter, chunksize=1000000)
     df_all = pd.concat([df for df in dfs])
     return df_all
-
-# Read Glue job parameters
-job_args = getResolvedOptions(sys.argv, ["CSVFilePath","FileDelimiter","EventTimestampColumn","LabelColumn","FormatCSV","ProfileCSV","DropLabelMissingRows","DropTimestampMissingRows","FraudLabels","FeatureCorr","ReportSuffix"])
-file_path = job_args['CSVFilePath']
-delimiter= job_args['FileDelimiter']
-EventTimestampCol= job_args['EventTimestampColumn']
-LabelCol= job_args['LabelColumn']
-CleanCSV = (job_args['FormatCSV']=='Yes')
-ProfileCSV = (job_args['ProfileCSV']=='Yes')
-DropLabelMissingRows = (job_args['DropLabelMissingRows']=='Yes')
-DropTimestampMissingRows = (job_args['DropTimestampMissingRows']=='Yes')
-FraudLabels = job_args['FraudLabels']
-FeatureCorr = (job_args['FeatureCorr']!='No')
-ReportSuffix = job_args['ReportSuffix']
-logging.info(job_args)
 
 
 html_templates = ['https://raw.githubusercontent.com/haozhouamzn/aws-fraud-detector-samples/master/profiler/CloudFormationSolution/templates/profile.html',
@@ -829,125 +813,83 @@ html_templates = ['https://raw.githubusercontent.com/haozhouamzn/aws-fraud-detec
 'https://raw.githubusercontent.com/haozhouamzn/aws-fraud-detector-samples/master/profiler/CloudFormationSolution/templates/profile_partition.html',
 'https://raw.githubusercontent.com/haozhouamzn/aws-fraud-detector-samples/master/profiler/CloudFormationSolution/templates/profile_correlation.html']
 
-# Parse S3 path
-path_parts=file_path.replace("s3://","").split("/")
-bucket = path_parts.pop(0)
-file_prefix = path_parts[:-1]
-file_name = path_parts[-1]
+def generate_report(job_args):
+    # Read Glue job parameters
+    file_path = job_args['CSVFilePath']
+    delimiter= job_args['FileDelimiter']
+    EventTimestampCol= job_args['EventTimestampColumn']
+    LabelCol= job_args['LabelColumn']
+    ProfileCSV = (job_args['ProfileCSV']=='Yes')
+    FraudLabels = job_args['FraudLabels']
+    FeatureCorr = (job_args['FeatureCorr']!='No')
+    ReportSuffix = job_args['ReportSuffix']
+    logging.info(job_args)
+        
+        
+    # Parse S3 path
+    path_parts=file_path.replace("s3://","").split("/")
+    bucket = path_parts.pop(0)
+    file_prefix = path_parts[:-1]
+    file_name = path_parts[-1]
 
 
-# Load html templates
-logging.info('Loading HTML templates.')
-os.mkdir("templates")
-for item in html_templates:
-    _local_file = 'templates/'+item.split('/')[-1]
-    logging.info(save_file_from_url(item,_local_file))
-    
+    # Load html templates
+    logging.info('Loading HTML templates.')
+    if not os.path.exists("templates"):
+        os.mkdir("templates")
+    for item in html_templates:
+        _local_file = 'templates/'+item.split('/')[-1]
+        logging.info(save_file_from_url(item,_local_file))
 
-if delimiter=='':
-    delimiter=','
 
-if CleanCSV==True:
-    logging.info('Formatting CSV.')
-    # Read csv file
-    logging.info('Reading CSV file.')
-    df = read_csv_from_s3(file_path)  
-    logging.info(f'Number of rows: {df.shape[0]}, Number of columns: {df.shape[1]}')
+    if delimiter=='':
+        delimiter=','
 
-    # Convert timestamp to required format
-    logging.info('Formatting datetime.')
-    try:
-        # Don't change if it's numeric
-        df[EventTimestampCol].astype('int')
-        logging.info('Datatime is integer, consider it as UNIX epoch.')
-        df[EventTimestampCol] = df[EventTimestampCol].astype('int').astype("datetime64[s]")
-    except:
-        _tmp_timestamp = pd.to_datetime(df[EventTimestampCol],'coerce')
-        _tmp_timestamp[~_tmp_timestamp.isna()] = _tmp_timestamp[~_tmp_timestamp.isna()].dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-        df[EventTimestampCol] = _tmp_timestamp
-        _n_time = _tmp_timestamp.isna().sum()
-        logging.info(f'Number of empty datetime is {_n_time}')
+    if ProfileCSV==True:
+        logging.info('Generating data profiler.')
+        # Read csv file
+        logging.info('Reading CSV file.')
+        df = read_csv_from_s3(file_path,{LabelCol:'object'},delimiter=delimiter)  
 
-    # Convert label values to lower cases and remove spaces
-    logging.info('Converting labels.')
-    df.loc[~df[LabelCol].isna(),LabelCol] = df[~df[LabelCol].isna()][LabelCol].astype(str).str.lower().str.replace(r'[^a-z0-9]+', '_', regex=True)
-
-    # Drop rows with missing labels or missing timestamps or bad timestamp formats
-    if DropTimestampMissingRows:
-        logging.info('Drop rows with missing timestamps or bad timestamp formats')
-        df = df[~df[EventTimestampCol].isna()]
-    if DropLabelMissingRows:
-        logging.info('Drop rows with missing labels')
-        df = df[~df[LabelCol].isna()]
-
-    # Convert headers
-    logging.info('Converting headers')
-    dfc = {EventTimestampCol:'EVENT_TIMESTAMP',LabelCol:'EVENT_LABEL'}                      
-    for c in df.columns:
-        if c in ['LABEL_TIMESTAMP','ENTITY_ID','EVENT_ID','ENTITY_TYPE']:
-            dfc[c] = c
-        elif c not in dfc.keys():
+        # Rename column to remove special characters
+        dfc = {}                      
+        for c in df.columns:
             # Convert header to lower cases and remove spaces
-            dfc[c] = re.sub(r'[^a-z0-9]+', '_', c.lower())
-    df.rename(columns=dfc,inplace=True)
-    cleaned_file = '/'.join(file_prefix+['afd_data_'+file_name.split('.')[0],'cleaned_'+file_name])
-    cleaned_file = f's3://{bucket}/{cleaned_file}'
-    logging.info(f'Saving cleaned file to: {cleaned_file}')
-    logging.info(f'Number of rows: {df.shape[0]}, Number of columns: {df.shape[1]}')
-    if df.shape[0]>0:
-        wr.s3.to_csv(df=df, path=cleaned_file, index=False)
-    else:
-        wr.s3.to_csv(df=pd.Series(['Empty data set after formatting!']), path=cleaned_file, index=False)
+            dfc[c] = re.sub(r'[^a-zA-Z0-9]+', '_', c)
+        df.rename(columns=dfc,inplace=True)
+        EventTimestampCol = dfc[EventTimestampCol]
+        LabelCol = dfc[LabelCol]
+        logging.info(df.columns)
+        
 
-if ProfileCSV==True:
-    logging.info('Generating data profiler.')
-    # Read csv file
-    logging.info('Reading CSV file.')
-    df = read_csv_from_s3(file_path,{LabelCol:'object'})  
+        # Get majority label class
+        logging.info('Profiling labels.')
+        majority_class, label_values, df, mapped_fraud, original_label_values = convert_labels(df,LabelCol,FraudLabels)
 
-    # Rename column to remove special characters
-    dfc = {}                      
-    for c in df.columns:
-        # Convert header to lower cases and remove spaces
-        dfc[c] = re.sub(r'[^a-zA-Z0-9]+', '_', c)
-    df.rename(columns=dfc,inplace=True)
-    EventTimestampCol = dfc[EventTimestampCol]
-    LabelCol = dfc[LabelCol]
-    logging.info(df.columns)
-    
+        # Update configuration
+        config = {  
+            "file_name": file_path,
+            "input_file": df,
+            "required_features" : {
+                "EVENT_TIMESTAMP": EventTimestampCol,
+                "EVENT_LABEL": 'AFD_LABEL',
+                "ORIGINAL_LABEL": LabelCol,
+            },
+            "FEAT_CORR": FeatureCorr,     # Boolean, whether to calculate correlation for pair-wise features
+            "MAPPED_FRAUD": mapped_fraud,   # Boolean, whether customer mapped labels to fraud
+            "LABELS" : label_values,        # Mapped label values, if not mapped, same as ORIGINAL_LABELS
+            "ORIGINAL_LABELS": original_label_values,   # Orignal label values
+            "MAJORITY_CLASS": majority_class,    # Majority label class value
+            "MinClassCount": 0,     # Do not show categories with fewer records in report plots
+            "TopN":500              # Maximum number of categories to show in plots. 
+        }
 
-    # Get majority label class
-    logging.info('Profiling labels.')
-    majority_class, label_values, df, mapped_fraud, original_label_values = convert_labels(df,LabelCol,FraudLabels)
-
-    # Update configuration
-    config = {  
-        "file_name": file_path,
-        "input_file": df,
-        "required_features" : {
-            "EVENT_TIMESTAMP": EventTimestampCol,
-            "EVENT_LABEL": 'AFD_LABEL',
-            "ORIGINAL_LABEL": LabelCol,
-        },
-        "FEAT_CORR": FeatureCorr,     # Boolean, whether to calculate correlation for pair-wise features
-        "MAPPED_FRAUD": mapped_fraud,   # Boolean, whether customer mapped labels to fraud
-        "LABELS" : label_values,        # Mapped label values, if not mapped, same as ORIGINAL_LABELS
-        "ORIGINAL_LABELS": original_label_values,   # Orignal label values
-        "MAJORITY_CLASS": majority_class,    # Majority label class value
-        "MinClassCount": 0,     # Do not show categories with fewer records in report plots
-        "TopN":500              # Maximum number of categories to show in plots. 
-    }
-
-    # Generate report
-    report = profile_report(config)
-    # Save report to S3 bucket
-    with open("report.html", "w") as file:
-        file.write(report)
-    s3_client = boto3.client('s3')
-    ReportSuffix = ReportSuffix.lstrip().rstrip()
-    profiler_path = '/'.join(file_prefix+['afd_data_'+file_name.split('.')[0],'report_'+ReportSuffix+'.html'])
-    logging.info(f'Saving data profiler to: s3://{bucket}/{profiler_path}')
-    response = s3_client.upload_file("report.html", bucket, profiler_path)
-
-logging.info('Done.')
+        # Generate report
+        report = profile_report(config)
+        # Save report to S3 bucket
+        with open(f"report_{ReportSuffix}.html", "w") as file:
+            file.write(report)
+        logging.info(f'Saving data profiler report as report_{ReportSuffix}.html')
+    logging.info('Done.')
+    return 1
 

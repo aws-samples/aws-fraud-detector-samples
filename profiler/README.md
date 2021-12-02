@@ -13,10 +13,12 @@ To use it, follow steps below:
 4. Wait a few minutes and open your S3 folder with your CSV file (e.g. myfile.csv). The profiling report is under folder /afd_data_myfile/report.html. 
 
 
-### Manual Solution 
+### Manual Notebook Solution 
 
-From Github download and copy the notebook - Fraud_Detector_Data_Profiling.ipynb, the python program - afd_profile.py and the template directory to a directory where you will run the profiling from. 
+The notebook - Fraud_Detector_Data_Profiling.ipynb and the python program - afd_profile.py under ManualNotebookSolution provide a manual profiler which has identical functions as the automated solution. 
 
 - Fraud_Detector_Data_Profiling.ipynb - is the notebook to run the profile report from. 
-- afd_profile.py - is the python package which will generate your profile report, you can also run it via command line.  
-- /templates - directory contains the supporting profile templates
+- afd_profile.py - is the python package which will generate your profile report. 
+
+To use it, from Github download and copy the notebook and python program to a directory where you will run the profiling from. Open the notebook and execute the cells. This will gnerate an html report of your data, which will be saved under same directory. 
+

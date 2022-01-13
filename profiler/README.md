@@ -1,6 +1,7 @@
 ## Amazon Fraud Detector Data Profiler
 
 -----
+Blog Link: https://aws.amazon.com/blogs/machine-learning/train-models-faster-with-an-automated-data-profiler-for-amazon-fraud-detector/
 
 ### Automated Solution
 

@@ -14,7 +14,9 @@ export FLASK_APP=app.py
 flask run
 ```
 
-One the app starts serving (locally), copy-paste the URL from terminal to your web browser, e.g. http://127.0.0.1:5000/. The demo page looks like following:
+Once the app starts serving (locally), copy-paste the URL from terminal to your web browser, e.g. http://127.0.0.1:5000/. Note that, it would not work directly from a remote server like EC2. It is created for serving in local machine. 
+
+The demo page looks like following:
 
 ![web app snapshot](data/demo_image.png)
 

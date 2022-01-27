@@ -117,12 +117,12 @@ It is <span style="color:green">extremely important</span> for you to choose a s
 > 
 > CATEGORICAL type is a good choice for these variables. CATEGORICAL is also a good choice for BOOLEAN variables inluding True/False/Null values. Another common use case is when variables have integers in values but the values fall within group like `hour_of_the_day`, `indident_severity`, `customer_rating`.  
 
-> #### Tip #4:
+> #### Tip #3:
 > **When is CATEGORICAL Variable type a <span style="color:orange">bad choice</span>?**  
 >
 > Among custom Variable types, differentiating between **CATEGORICAL** vs. **FREE_FORM_TEXT** is very important. Some customers in the past mapped variables like `user_review` to CATEGORICAL. In general, if the uniqueness in your variable is 100%, then CATEGORICAL type would not be a good choice. 
 
-> #### Tip #5:
+> #### Tip #4:
 > **When is FREE_FORM_TEXT Variable type a <span style="color:green">good choice</span>?**  
 > 
 > FREE_FORM_TEXT can be used for `user_reviews`, `comments`, or even a variable that has completely unique values and follow a specific pattern if separated by a delimier. e.g. unique `coupon_codes` where prefix and suffix are meaninful.

@@ -7,11 +7,17 @@ Use the dataset that you find closest to your business. **Note that**, all datas
 > The script uses [click-web](https://github.com/fredrik-corneliusson/click-web). In order to start using the app, you first need to create an IAM role with *AmazonS3FullAccess* and *AmazonFraudDetectorFullAccessPolicy*, and an S3 bucket where you want synthetic data to be copied in your account. Then, you can start playing with the app and with AFD. Before running, make sure that the AWS CLI is [configured](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html). In order to use the app, run the following codes from terminal. 
 
 ```
+cd demo_scripts  # from terminal, first go to demo_scripts sub-folder
 # pip install click-web  # uncomment if click-web not installed
 export FLASK_ENV=development
 export FLASK_APP=app.py
 flask run
 ```
+
+One the app starts serving (locally), copy-paste the URL from terminal to your web browser, e.g. http://127.0.0.1:5000/. The demo page looks like following:
+
+![web app snapshot](data/demo_image.png)
+
   
 ## Data Description and Expected AUC for Various Fraud Categories
 The following table provides the data description of currently supported fraud demo datasets. We provide a brief idea about what kind of sample features you would observe in your use-case. In reality, there can be variations and feel free to provide variables that you think are important for detecting fraud to AFD. 

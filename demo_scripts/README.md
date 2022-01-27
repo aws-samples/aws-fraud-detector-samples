@@ -3,7 +3,7 @@ This folder contains synthetic datasets that can be used to try out AFD for diff
 Use the dataset that you find closest to your business. **Note that**, all datasets are synthetically generated to help you understand the functionalities of the service, and to help create your first set of AFD resources, including `Variables, Labels, Entity type, Event type`, and train your first Online Fraud Insights `Model type`. To actually understand how AFD works in detecting fraud for your use-case, switch to real data.   
 
   
-> #### We also provide a script that can be used to run a local flask app. 
+> #### We also provide a script that can be used to run a local flask app. The app will provide you go-to-demo UI that you can use to a demo AFD model with a single click, in your account. 
 > The script uses [click-web](https://github.com/fredrik-corneliusson/click-web). In order to start using the app, you first need to create an IAM role with *AmazonS3FullAccess* and *AmazonFraudDetectorFullAccessPolicy*, and an S3 bucket where you want synthetic data to be copied in your account. Then, you can start playing with the app and with AFD. Before running, make sure that the AWS CLI is [configured](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html). In order to use the app, run the following codes from terminal. 
 
 ```

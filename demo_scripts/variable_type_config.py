@@ -372,8 +372,8 @@ RECIPE = \
                 "variable_mappings": [
                     {
                         "variable_name": "hour_of_review",
-                        "variable_type": "CATEGORICAL",
-                        "data_type": "STRING"
+                        "variable_type": "NUMERIC",
+                        "data_type": "FLOAT"
                     },
                     {
                         "variable_name": "asin",
@@ -387,8 +387,8 @@ RECIPE = \
                     },
                     {
                         "variable_name": "rating",
-                        "variable_type": "CATEGORICAL",
-                        "data_type": "STRING"
+                        "variable_type": "NUMERIC",
+                        "data_type": "FLOAT"
                     }
                     ],
                 
@@ -434,8 +434,8 @@ RECIPE = \
                     },
                     {
                         "variable_name": "incident_severity",
-                        "variable_type": "CATEGORICAL",
-                        "data_type": "STRING"
+                        "variable_type": "NUMERIC",
+                        "data_type": "FLOAT"
                     },
                     {
                         "variable_name": "vehicle_claim",
@@ -444,8 +444,8 @@ RECIPE = \
                     },
                     {
                         "variable_name": "incident_hour",
-                        "variable_type": "CATEGORICAL",
-                        "data_type": "STRING"
+                        "variable_type": "NUMERIC",
+                        "data_type": "FLOAT"
                     },
                     {
                         "variable_name": "num_injuries",

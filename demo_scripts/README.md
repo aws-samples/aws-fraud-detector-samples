@@ -1,9 +1,8 @@
 # Amazon Fraud Detector (AFD) Demo Datasets 
-This folder contains synthetic datasets that can be used to try out AFD for different fraud use cases.
-Use the dataset that you find closest to your business. **Note that**, all datasets are synthetically generated to help you understand the functionalities of the service, and to help create your first set of AFD resources, including `Variables, Labels, Entity type, Event type`, and train your first Online Fraud Insights `Model type`. To actually understand how AFD works in detecting fraud for your use-case, switch to real data.   
-
+ This folder contains **synthetic** datasets that can be used to try out AFD for different fraud use cases.
+Use the dataset that you find closest to your business. **Note that**, all datasets are synthetically generated to help you understand the functionalities of the service, and to help create your first set of AFD resources, including <span style="color:#778899">Variables, Labels, Entity Type, Event Type</span>, and train your first Online Fraud Insights <span style="color:#778899">Model Type</span>. To actually understand how AFD works in detecting fraud for your use-case, switch to real data.  
   
-> #### We also provide a script that can be used to run a local flask app. The app provides you go-to-demo UI that you can use to a train an AFD model, in your AWS account, with just a single click. 
+> #### We also provide a script that can be used to run a local flask app. The app provides you go-to-demo UI that you can use to a train an AFD model, in your AWS account, with just a single click.  
 > The script uses [click-web](https://github.com/fredrik-corneliusson/click-web). In order to start using the app, you first need to create an IAM role with *AmazonS3FullAccess* and *AmazonFraudDetectorFullAccessPolicy*, and an S3 bucket where you want synthetic data to be copied in your account. Then, you can start playing with the app and with AFD. Before running, make sure that the AWS CLI is [configured](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html). In order to use the app, run the following codes from terminal. 
 
 ```
@@ -14,7 +13,9 @@ export FLASK_APP=app.py
 flask run
 ```
 
-Once the app starts serving (locally), copy-paste the URL from terminal to your web browser, e.g. http://127.0.0.1:5000/. Note that, it would not work directly from a remote server like EC2. It is created for serving in local machine. 
+Once the app starts serving (locally), copy-paste the URL from terminal to your web browser, e.g. http://127.0.0.1:5000/. Note that, the app has limitations:
+1. It would not work directly from a remote server like EC2. It is created for serving in local machine. 
+2. It will also only work for use-cases defined in the repository as it does not take custom input data. The utility of the app is to quickly run an AFD training using linked demo datasets. 
 
 The demo page looks like following:
 
@@ -22,7 +23,7 @@ The demo page looks like following:
 
   
 ## Data Description and Expected AUC for Various Fraud Categories
-The following table provides the data description of currently supported fraud demo datasets. We provide a brief idea about what kind of sample features you would observe in your use-case. In reality, there can be variations and feel free to provide variables that you think are important for detecting fraud to AFD. 
+The following table provides the data description of currently provided fraud demo datasets. Those datasets are just an examples of what you might encounter in real-life business use-cases. These provide a brief idea about what kind of sample features you could observe in your use-case. In reality, there can be variations and you should use all the variables that you think are important for detecting fraud. 
 
 
 | Fraud category     | Fraud sub-category                                                      | Model Type                 | Expected AUC | Column # | Row # | Sample features                                                                |
@@ -39,9 +40,8 @@ The following table provides the data description of currently supported fraud d
 | Content Moderation | Fake Reviews                                                            | Online Fraud Insights      |         0.94 |       10 |  100k | ASIN, Review, Rating                                                           |
 
 
-\* *Transaction Fraud Insights (TFI) Model type requires data from last 18 months in order to train. The demo datasets are genered on 1/1/2022 with synthetic dates from last 18 months. If you are using these datasets for a later date with TFI, you might see a difference in performance.*
+\* *Transaction Fraud Insights (TFI) Model type requires data from last 18 months in order to train. The demo datasets are genered on 1/1/2022 with synthetic dates from last 18 months. If you are using these datasets at a later date with TFI, you might see a difference in performance. To keep the performance consistent as what is shown above, we recommend shifting EVENT_TIMESAMP by number of days between your current date minus 1/1/2022.*
   
-
         
 ## Examples of Variable -> Variable type mapping from demo datasets
 
@@ -86,17 +86,17 @@ The following table provides the data description of currently supported fraud d
 | 36 | referral_code                                 | CATEGORICAL                | STRING    |
 | 37 | postal_code                                   | BILLING_ZIP/SHIPPING_ZIP   | STRING    |
 | 38 | referral_medium                               | CATEGORICAL                | STRING    |
-| 39 | hour_of_review                                | CATEGORICAL                | STRING    |
+| 39 | hour_of_review                                | NUMERIC                    | FLOAT     |
 | 40 | asin                                          | CATEGORICAL                | STRING    |
 | 41 | review_text                                   | FREE_FORM_TEXT             | STRING    |
-| 42 | rating                                        | CATEGORICAL                | STRING    |
+| 42 | rating                                        | NUMERIC                    | FLOAT     |
 | 43 | policy_id                                     | ORDER_ID/CATEGORICAL       | STRING    |
 | 44 | policy_deductable                             | NUMERIC                    | FLOAT     |
 | 45 | customer_age                                  | NUMERIC                    | FLOAT     |
 | 46 | policy_annual_premium                         | NUMERIC                    | FLOAT     |
-| 47 | incident_severity                             | CATEGORICAL                | STRING    |
+| 47 | incident_severity                             | NUMERIC                    | FLOAT     |
 | 48 | vehicle_claim                                 | NUMERIC                    | FLOAT     |
-| 49 | incident_hour                                 | CATEGORICAL                | STRING    |
+| 49 | incident_hour                                 | NUMERIC                    | FLOAT     |
 | 50 | num_injuries                                  | NUMERIC                    | FLOAT     |
 | 51 | num_claims_past_year                          | NUMERIC                    | FLOAT     |
 | 52 | injury_claim                                  | NUMERIC                    | FLOAT     |
@@ -106,31 +106,43 @@ The following table provides the data description of currently supported fraud d
 | 56 | police_report_available                       | CATEGORICAL                | STRING    |
 
 
-## Tips for **Variable** to **Variable type** mapping
-It is <span style="color:green">extremely important</span> for you to choose a sensible Variable to Variable type mapping. Wrong Variable type mapping can negatively impact your model performance and it can be difficult to change the mapping later, especially if multiple Models, Events start using the wrongly mapped variable name. The [official documentation](https://docs.aws.amazon.com/frauddetector/latest/ug/create-a-variable.html) helps you to understand the supported variable types. In addition to the offical guide, in this section, we provide some tips and examples on choosing the right variable type for your variable. 
-
-
+## Tips for **Variable** to **<span style="color:#778899">Variable Type</span>** mapping
+It is <span style="color:green">extremely important</span> for you to choose a sensible Variable to <span style="color:#778899">Variable Type</span> mapping. Wrong <span style="color:#778899">Variable Type</span> mapping can negatively impact your model performance and it can be difficult to change the mapping later, especially if multiple Models, Events start using the wrongly mapped variable name. The [official documentation](https://docs.aws.amazon.com/frauddetector/latest/ug/create-a-variable.html) helps you to understand the supported variable types. In addition to the offical guide, in this section, we provide some tips and examples on choosing the right variable type for your variable. 
+  
+  
 > #### Tip #1:
 >
-> There are many **specific** categories of Varible types like  `Email`, `IP address`, `User agent`, `Phone number`, `Fingerprint`, `Card bin` etc. as listed in the [official documentation](https://docs.aws.amazon.com/frauddetector/latest/ug/create-a-variable.html). And there are 3 **custom** categories of Variable types including `NUMERIC`, `CATEGORICAL`, `FREE_FORM_TEXT`.   
+> There are many **specific** categories of <span style="color:#778899">Variable Types</span> like  Email, IP address, User agent, Phone number, Fingerprint, Card bin etc. as listed in the [official documentation](https://docs.aws.amazon.com/frauddetector/latest/ug/create-a-variable.html). If variable matches one of predefined <span style="color:#778899">Variable Types</span>, please use it. It is important to map your variable to the **correct** type. In the backend AFD generates enrichments, feature engineering, risk scoring based on the type of variable. Wrong assignment might result in invalid data transformations. For example, if you pass an `ip_address` to **EMAIL_ADDRESS** <span style="color:#778899">Variable Type</span>, you won't be able to get power of IP enrichments like ASN, ISP, geo-location, IP Amazon Risk Score etc. 
 > 
-> If is very important to map your variable to correct **specific** category. In the backend AFD generates specific enrichments, feature engineering, risk scoring based on the type of variable. For e.g. if you pass an `ip_address` to `EMAIL_ADDRESS` Variable type, you won't be able to get power of IP enrichments like ASN, ISP, IP City, IP Amazon Risk Score etc. 
-> 
-> Therefore, before mapping any variable to Custom Variable types including **NUMERIC, CATEGORICAL, FREE_FORM_TEXT**, make sure that it does not fit to other specific categories like `EMAIL_ADDRESS`, `IP_ADDRESS` etc. If it does not, then use the power of `generic` **custom** variables to map. 
-
+> If variable doesn’t match any of predefined <span style="color:#778899">Variable Types</span> use one of 3 generic <span style="color:#778899">Variable Types</span>: **NUMERIC, CATEGORICAL, FREE_FORM_TEXT**. Before mapping to generic <span style="color:#778899">Variable Types</span> though, make sure that variable does not corresponds to other, more specific categories like **EMAIL_ADDRESS**, **IP_ADDRESS** etc. If it does not, then use the power of generic variables to map. 
+  
+  
 > #### Tip #2:
 > **When is CATEGORICAL Variable type a <span style="color:green">good choice</span>?**  
 >
-> Among custom Variable types, differentiating between **CATEGORICAL** vs. **FREE_FORM_TEXT** is very important. CATEGORICAL variables are the ones that can be put into categories, segments, or groups. Many customers have different types of ID variables like `merchant_id`, `campaign_id`, `policy_id` etc. Note that there is also a reserved variable type called ENTITY_ID. It is a special and very useful variable for Transaction Fraud Insights. The entities that you think could help group fraud in your data e.g. `account_id`, `user_id` should be passed as ENTITY_ID, not CATEGORICAL.
+> Among generic Variable Types, differentiating between **CATEGORICAL** vs. **FREE_FORM_TEXT** is very important. **CATEGORICAL** variables are the ones that can be put into categories, segments, or groups and usually don’t have natural ordering. Examples of categorical variables are: `customer segment`, `color`, `department code`, `product ID`.
 > 
-> CATEGORICAL type is a good choice for these variables. CATEGORICAL is also a good choice for BOOLEAN variables inluding True/False/Null values. Another common use case is when variables have integers in values but the values fall within group like `hour_of_the_day`, `indident_severity`, `customer_rating`.  
-
+> Many customers have different types of ID variables like `merchant_id`, `campaign_id`, `policy_id` etc. These variables represents groups (e.g. all customers with same `policy_id` represent a group), and **CATEGORICAL** type is a good choice for these variables.
+> 
+> Note that there is also a reserved variable type called **ENTITY_ID**. It is a special and a very useful variable for <span style="color:#778899">Transaction Fraud Insights</span>. The entities refer to the owner, initiator or executor of the action you want to evaluate. Think which variable in your data uniquely identifies your entities e.g. `account_id`, `user_id` and pass it as **ENTITY_ID**.  At the moment only one variable can be mapped to **ENTITY_ID**. For all other IDs use **CATEGORICAL** type instead. 
+> 
+> **CATEGORICAL** is also a good choice for `BOOLEAN` variables including True/False/Null values. 
+    
+      
 > #### Tip #3:
 > **When is CATEGORICAL Variable type a <span style="color:orange">bad choice</span>?**  
 >
-> Among custom Variable types, differentiating between **CATEGORICAL** vs. **FREE_FORM_TEXT** is very important. Some customers in the past mapped variables like `user_review` to CATEGORICAL. In general, if the uniqueness in your variable is 100%, then CATEGORICAL type would not be a good choice. 
-
-> #### Tip #4:
-> **When is FREE_FORM_TEXT Variable type a <span style="color:green">good choice</span>?**  
+> Among generic <span style="color:#778899">Variable Types</span>, differentiating between **CATEGORICAL** vs. **FREE_FORM_TEXT** can be confusing. Please avoid mapping variables that contain a blob of text consisting of multiple sentences like `user_review`, comments as **CATEGORICAL**. Common pattern in these variables is that the raw values do not represent groups. (e.g. raw values of user reviews would likely be unique and can not be grouped). In those situations it’s better to use **FREE_FORM_TEXT**.
 > 
-> FREE_FORM_TEXT can be used for `user_reviews`, `comments`, or even a variable that has completely unique values and follow a specific pattern if separated by a delimier. e.g. unique `coupon_codes` where prefix and suffix are meaninful.
+> On the other hand variables list `company name` or `credit card number`, even though consist of multiple words can be still considered as categories and **CATEGORICAL** type would be appropriate here.
+> 
+> Another type of use case where **CATEGORICAL** might not be best fit are `INTEGER` variables that have inherent ordering. Examples include `day_of_the_week`, `incident_severity`, `customer_rating`. Although, it is likely okay to map these variables as **CATEGORICAL**, but AFD's recommendation is to map `INTEGER` variables with inherent order as **NUMERIC** 
+  
+  
+> #### Tip #4:
+> **When is FREE_FORM_TEXT Variable Type a <span style="color:green">good choice</span>?**  
+> 
+> **FREE_FORM_TEXT** can be used for variables that contain blob of text, e.g. `user reviews`, `comments`, often comprising multiple sentences. A general pattern where **FREE_FORM_TEXT** is a good choice is when the values in the variable contain multiple tokens separated by a delimiter. For example, `user reviews` and comments can be separated by “space” as the delimiter. In the backend, any value passed as **FREE_FORM_TEXT** variable is first split into tokens using a delimiter, where a delimiter can be any character other than alpha-numerics and understore symbol. Then the real value is extracted from these tokens. **FREE_FORM_TEXT** <span style="color:#778899">Variable Type</span> is useful when raw values of a variable are highly unique, but tokens are not.  
+> 
+> Examples of scenarios with different type of delimiters are `referral codes`, `date_of_birth`. In such cases, prefix, suffix and/or intermediate parts of the variable values hold some useful information, but the raw values as it is do not. Assume, all `referral codes` generated by a company are unique, but each `referral code` has prefix based on user’s zip code. In such case, it is useful to separate out the value from the zip code. **FREE_FORM_TEXT** field will be able to extract such information.  
+  

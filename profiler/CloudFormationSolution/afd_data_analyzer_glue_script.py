@@ -8,7 +8,7 @@ import os
 import json
 import re
 import sys
-from jinja2 import Environment, PackageLoader, FileSystemLoader, select_autoescape
+from jinja2 import Environment, PackageLoader, FileSystemLoader
 import itertools
 from pandas import DataFrame, Series
 import scipy.stats as ss
@@ -714,7 +714,7 @@ def get_correlation( config, df_stats, df):
 def profile_report(config):
     """ main function - generates the profile report of the CSV """
     # -- Jinja2 environment -- 
-    env = Environment(autoescape=select_autoescape(['html', 'xml']),loader=FileSystemLoader("templates"))
+    env = Environment(loader=FileSystemLoader("templates"))
     profile= env.get_template('profile.html')
     
     # -- all the checks -- 

@@ -42,7 +42,7 @@ Resources:
        Handler: index.handler
        Role: !GetAtt AWSLambdaExecutionRole.Arn
        Timeout: 60
-       Runtime: python3.6
+       Runtime: python3.9
        Code:
          ZipFile: |
           import boto3

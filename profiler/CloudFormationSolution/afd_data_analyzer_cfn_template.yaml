@@ -183,6 +183,16 @@ Resources:
               - logs:PutLogEvents
               Effect: Allow
               Resource: arn:aws:logs:*:*:*
+            - Action:
+              - s3:Get*
+              - s3:List*
+              - s3:Create*
+              - s3:Put*
+              - s3-object-lambda:Get*
+              - s3-object-lambda:List*
+              - s3-object-lambda:Put*
+              Effect: Allow
+              Resource: arn:aws:s3:::*
             Version: '2012-10-17'
           PolicyName: !Sub ${AWS::StackName}-${AWS::Region}-AWSLambda-CW
 

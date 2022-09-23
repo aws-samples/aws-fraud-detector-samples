@@ -242,10 +242,14 @@ def set_feature(row, config):
         'datetime': 'DATETIME',
         'EMAIL_ADDRESS': 'EMAIL_ADDRESS',
         'IP_ADDRESS': 'IP_ADDRESS',
-        'PHONE_NUMBER': 'PHONE_NUMBER'
+        'PHONE_NUMBER': 'PHONE_NUMBER',
+        'bool': 'CATEGORY'
     }
     
-    feature = dtype_to_vtype_map[row._dtype]
+    if row._dtype in dtype_to_vtype_map:
+        feature = dtype_to_vtype_map[row._dtype]
+    else:
+        feature = ['CATEGORY']
 
     if row._column == required_features['EVENT_TIMESTAMP']:
         feature = "EVENT_TIMESTAMP"
@@ -408,7 +412,10 @@ def get_stats(config, df):
 
 def col_stats(df, target, column, majority,MinClassCount,labels):
     """ generates column statisitcs for categorical columns """
-    cat_summary = df.groupby([column,target])[target].count().unstack(fill_value=0).reset_index().sort_values(majority, ascending=True).reset_index(drop=True)
+    df_temp = df[[column,target]]
+    df_temp[column] = df_temp[column].fillna('<missing>')
+    cat_summary = df_temp.groupby([column,target])[target].count().unstack(fill_value=0).reset_index().sort_values(majority, ascending=True).reset_index(drop=True)
+    
     # Total number of records
     cat_summary['total'] = 0
     sort_orders = []

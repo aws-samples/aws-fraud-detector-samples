@@ -17,6 +17,8 @@
 
 - Fraud_Detector_BatchPrediction_API_Example.ipynb, provides an example of working with Amazon Fraud Detector's batch prediction API.
 
+- AFD-Sagemaker-Model-Example.ipynb, provides an exmaple of training a sagemaker model, import to Amazon Fraud Detector and test.
+
 #### Automated Data Profiler
 
 The profiler generates an intuitive and comprehensive report of your dataset, including variable statistics, label distribution, categorical and numeric analysis, and even variable&label correlations. It provides guidance on variable types as well as an option to transform the dataset into the format in compliance with AFD. Refer to [this blog post](https://aws.amazon.com/blogs/machine-learning/train-models-faster-with-an-automated-data-profiler-for-amazon-fraud-detector/) for more information. 

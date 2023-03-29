@@ -8,3 +8,7 @@
 
 - **UpdateDatasetTimestamp.ipynb**: notebook to update EVENT_TIMESTAMP of all events to last 18 months. 
 
+- **coldstart**: folder contains datasets for [cold-start](https://aws.amazon.com/about-aws/whats-new/2023/02/amazon-fraud-detector-cold-start-model-training-limited-historical-data/) use cases. 
+  - registration_data_2K_coldstart.csv: sample coldstart dataset for registration fraud use case.
+  - Insurance_FraudulentAutoInsuranceClaims_2K_coldstart.csv: sample coldstart dataset for insurance fraud use case.
+  - transaction_data_2K_coldstart.csv: sample coldstart dataset for online transaction fraud use case.

@@ -5,11 +5,11 @@
 
 #### Sample Notebooks
 
-- Fraud_Detector_End_to_End_External_Data_OFI.ipynb, provides an example of building a detector using Amazon Fraud Detector’s APIs for Online Fraud Inisights (OFI) model type using external data sets. 
+- Fraud_Detector_End_to_End_External_Data_OFI.ipynb, provides an example of building a detector using Amazon Fraud Detector’s APIs for Online Fraud Insights (OFI) model type using external data sets. 
 
-- Fraud_Detector_End_to_End_Stored_Data.ipynb, provides an example of building a detector using Amazon Fraud Detector’s APIs for Transaction Fraud Inisights (TFI) or Online Fraud Inisights (OFI) model type using data stored in Amazon Fraud Detector.  
+- Fraud_Detector_End_to_End_Stored_Data.ipynb, provides an example of building a detector using Amazon Fraud Detector’s APIs for Transaction Fraud Insights (TFI) or Online Fraud Insights (OFI) model type using data stored in Amazon Fraud Detector.  
 
-- Fraud_Detector_End_to_End_ATI.ipynb, provides an example of building a detector using Amazon Fraud Detector’s APIs for Account Takeover Inisights (ATI) model type using data stored in Amazon Fraud Detector. Sample dataset is available under ```data``` folder. 
+- Fraud_Detector_End_to_End_ATI.ipynb, provides an example of building a detector using Amazon Fraud Detector’s APIs for Account Takeover Insights (ATI) model type using data stored in Amazon Fraud Detector. Sample dataset is available under ```data``` folder. 
 
 - Fraud_Detector_Send_Event.ipynb, provides an example of calling Amazon Fraud Detector's SendEvent API. 
   
